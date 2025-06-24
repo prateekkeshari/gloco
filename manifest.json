@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Gloco - Screenshot Selector",
+  "name": "Gloco Screenshot Tool",
   "version": "1.0.0",
-  "description": "Beautiful webpage screenshot selector with area selection",
+  "description": "Beautiful screenshot tool for capturing and customizing webpage content. Save, edit, and share with style.",
   "permissions": [
     "activeTab",
     "tabs",
