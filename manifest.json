@@ -9,19 +9,14 @@
     "storage",
     "contextMenus",
     "scripting",
-    "downloads"
+    "downloads",
+    "notifications"
   ],
   "host_permissions": [
     "<all_urls>"
   ],
   "action": {
-    "default_popup": "popup.html",
-    "default_title": "Gloco Screenshot",
-    "default_icon": {
-      "16": "icons/icon16.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
-    }
+    "default_title": "Gloco Screenshot"
   },
   "content_scripts": [
     {
