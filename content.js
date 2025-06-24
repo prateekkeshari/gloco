@@ -1,3 +1,6 @@
+// Send a message to the background script that the content script has loaded
+chrome.runtime.sendMessage({ action: 'startSelectionFromContent' });
+
 class GlocoSelector {
     constructor() {
         this.isSelecting = false;
