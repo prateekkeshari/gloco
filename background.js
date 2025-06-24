@@ -20,6 +20,15 @@ chrome.action.onClicked.addListener(async (tab) => {
     }
 
     try {
+        // First, try to send a message to see if content script is already loaded
+        try {
+            await chrome.tabs.sendMessage(tab.id, { action: 'startSelection' });
+            return; // Content script already loaded and working
+        } catch (messageError) {
+            // Content script not loaded, need to inject it
+            console.log('Content script not loaded, injecting...');
+        }
+
         // Inject CSS first
         await chrome.scripting.insertCSS({
             target: { tabId: tab.id },
@@ -31,6 +40,9 @@ chrome.action.onClicked.addListener(async (tab) => {
             target: { tabId: tab.id },
             files: ['content.js']
         });
+
+        // Wait a moment for the script to initialize
+        await new Promise(resolve => setTimeout(resolve, 100));
 
     } catch (injectionError) {
         console.error('Error injecting content script:', injectionError);

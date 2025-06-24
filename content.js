@@ -1,5 +1,8 @@
 // Send a message to the background script that the content script has loaded
-chrome.runtime.sendMessage({ action: 'startSelectionFromContent' });
+// But only if this is the first time
+if (!window.glocoSelector) {
+    chrome.runtime.sendMessage({ action: 'startSelectionFromContent' });
+}
 
 class GlocoSelector {
     constructor() {
@@ -25,7 +28,10 @@ class GlocoSelector {
     }
     
     startSelection() {
-        if (this.isSelecting) return;
+        if (this.isSelecting) {
+            // If already selecting, cancel current selection first
+            this.cancelSelection();
+        }
         
         this.isSelecting = true;
         this.createOverlay();
