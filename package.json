@@ -1,0 +1,12 @@
+{
+  "name": "gloco",
+  "version": "1.0.0",
+  "description": "Beautiful webpage screenshot selector Chrome extension",
+  "main": "background.js",
+  "scripts": {
+    "convert-icons": "node convert_icons.js"
+  },
+  "dependencies": {
+    "sharp": "^0.32.6"
+  }
+} 

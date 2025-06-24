@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Background -->
+    <rect width="128" height="128" rx="32" fill="#FF5533"/>
+    
+    <!-- Camera body -->
+    <rect x="24" y="36" width="80" height="56" rx="16" stroke="white" stroke-width="4"/>
+    
+    <!-- Main Lens -->
+    <circle cx="64" cy="64" r="24" stroke="white" stroke-width="4"/>
+    <circle cx="64" cy="64" r="16" stroke="white" stroke-width="3"/>
+    <circle cx="64" cy="64" r="8" fill="white"/>
+    
+    <!-- Flash -->
+    <rect x="84" y="44" width="12" height="8" rx="2" fill="white"/>
+    
+    <!-- Camera details -->
+    <rect x="32" y="44" width="16" height="4" rx="2" fill="white" fill-opacity="0.6"/>
+    <circle cx="64" cy="64" r="20" stroke="white" stroke-opacity="0.4" stroke-width="2"/>
+    
+    <!-- Subtle highlight -->
+    <path d="M56 52C56 48.6863 58.6863 46 62 46H66C69.3137 46 72 48.6863 72 52V52C72 55.3137 69.3137 58 66 58H62C58.6863 58 56 55.3137 56 52V52Z" fill="white" fill-opacity="0.2"/>
+</svg> 

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gloco</title>
+    <link rel="stylesheet" href="popup.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="popup-container">
+        <div class="header">
+            <div class="header-content">
+                <h1 class="title">Gloco</h1>
+                <button id="settingsBtn" class="settings-btn" title="Settings">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="capture-section">
+                <button id="captureBtn" class="capture-btn">
+                    <div class="btn-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                            <circle cx="12" cy="13" r="4"></circle>
+                        </svg>
+                    </div>
+                    <div class="btn-content">
+                        <span class="btn-title">Capture Area</span>
+                        <span class="btn-subtitle">Click and drag to select</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="settings-view hidden">
+        <div class="settings-header">
+            <button id="backBtn" class="back-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </button>
+            <h2 class="settings-title">Default Settings</h2>
+        </div>
+        <div class="settings-content">
+            <div class="setting-item">
+                <label for="color-picker">Background Color</label>
+                <div class="custom-color-picker">
+                    <div class="color-swatches">
+                        <div class="color-swatch active" data-color="#ff5533" style="background: #ff5533"></div>
+                        <div class="color-swatch" data-color="#ff6b6b" style="background: #ff6b6b"></div>
+                        <div class="color-swatch" data-color="#4ecdc4" style="background: #4ecdc4"></div>
+                        <div class="color-swatch" data-color="#45b7d1" style="background: #45b7d1"></div>
+                        <div class="color-swatch" data-color="#f093fb" style="background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%)"></div>
+                        <div class="color-swatch" data-color="#4facfe" style="background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%)"></div>
+                        <div class="color-swatch" data-color="#43e97b" style="background: linear-gradient(45deg, #43e97b 0%, #38f9d7 100%)"></div>
+                        <div class="color-swatch" data-color="#fa709a" style="background: linear-gradient(45deg, #fa709a 0%, #fee140 100%)"></div>
+                        <div class="color-swatch" data-color="#667eea" style="background: linear-gradient(45deg, #667eea 0%, #764ba2 100%)"></div>
+                        <div class="color-swatch" data-color="#f093fb" style="background: linear-gradient(45deg, #ffecd2 0%, #fcb69f 100%)"></div>
+                        <div class="color-swatch" data-color="#000000" style="background: #000000"></div>
+                        <div class="color-swatch" data-color="#ffffff" style="background: #ffffff; border: 2px solid #e5e7eb;"></div>
+                    </div>
+                    <div class="custom-color-section">
+                        <input type="color" id="color-picker" value="#ff5533" class="hidden-color-input">
+                        <button class="custom-color-btn" onclick="document.getElementById('color-picker').click()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2l3.09 6.26L22 9l-5.91 5.89L18 21l-6-3.27L6 21l1.91-6.11L2 9l6.91-.74L12 2z"/>
+                            </svg>
+                            Custom
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="setting-item">
+                <label for="padding-slider">Padding: <span id="padding-value">30</span>px</label>
+                <div class="custom-range-container">
+                    <input type="range" id="padding-slider" min="0" max="100" step="5" value="30">
+                    <div class="range-labels">
+                        <span>0</span>
+                        <span>50</span>
+                        <span>100</span>
+                    </div>
+                </div>
+            </div>
+            <div class="setting-note">
+                <p>These are default values. You can adjust them after taking any screenshot.</p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="popup.js"></script>
+</body>
+</html> 
