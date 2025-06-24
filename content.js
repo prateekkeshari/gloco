@@ -220,10 +220,7 @@ class GlocoSelector {
         
         modal.innerHTML = `
             <div class="gloco-modal-content ${orientationClass}">
-                <div class="gloco-modal-header">
-                    <h3 class="gloco-modal-title">Screenshot Captured</h3>
-                    <button class="gloco-close-btn">×</button>
-                </div>
+                <button class="gloco-close-btn">×</button>
                 <div class="gloco-screenshot-container">
                     <img src="${imageUrl}" alt="Screenshot" class="gloco-screenshot ${screenshotClass}" />
                 </div>
@@ -264,15 +261,6 @@ class GlocoSelector {
                     <div class="color-swatch" data-color="#F4CDD7" style="background: #F4CDD7"></div>
                     <div class="color-swatch" data-color="#000000" style="background: #000000"></div>
                     <div class="color-swatch" data-color="#ffffff" style="background: #ffffff; border: 2px solid #e5e7eb;"></div>
-                </div>
-                <div class="custom-color-section">
-                    <input type="color" id="modal-color-picker" value="#ff5533" class="hidden-color-input">
-                    <button class="custom-color-btn" onclick="document.getElementById('modal-color-picker').click()">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M12 2l3.09 6.26L22 9l-5.91 5.89L18 21l-6-3.27L6 21l1.91-6.11L2 9l6.91-.74L12 2z"/>
-                        </svg>
-                        Custom
-                    </button>
                 </div>
             </div>
             
@@ -321,7 +309,12 @@ class GlocoSelector {
                 outerRadius: 16, 
                 innerRadius: 12 
             };
-            const colorPicker = floatingControls.querySelector('#modal-color-picker');
+            const colorPicker = document.createElement('input');
+            colorPicker.type = 'hidden';
+            colorPicker.id = 'modal-color-picker';
+            colorPicker.value = settings.color;
+            floatingControls.appendChild(colorPicker);
+            
             const paddingSlider = floatingControls.querySelector('#modal-padding-slider');
             const paddingValue = floatingControls.querySelector('#modal-padding-value');
             const outerRadiusSlider = floatingControls.querySelector('#modal-outer-radius-slider');
@@ -329,7 +322,6 @@ class GlocoSelector {
             const innerRadiusSlider = floatingControls.querySelector('#modal-inner-radius-slider');
             const innerRadiusValue = floatingControls.querySelector('#modal-inner-radius-value');
             
-            colorPicker.value = settings.color;
             paddingSlider.value = settings.padding;
             paddingValue.textContent = settings.padding + 'px';
             outerRadiusSlider.value = settings.outerRadius || 16;
@@ -346,7 +338,7 @@ class GlocoSelector {
             this.setActiveSwatch(floatingControls, settings.color);
             
             // Set up real-time editing
-            this.setupModalEditing(modal, floatingControls);
+            this.setupModalEditing(modal, floatingControls, colorPicker);
         });
         
         // Event listeners for main actions
@@ -355,8 +347,14 @@ class GlocoSelector {
         const copyBtn = modal.querySelector('#copyBtn');
         
         closeBtn.addEventListener('click', () => this.closeModal(modal, imageUrl, floatingControls));
-        downloadBtn.addEventListener('click', () => this.downloadCurrentImage(modal));
-        copyBtn.addEventListener('click', () => this.copyCurrentImageToClipboard(modal));
+        downloadBtn.addEventListener('click', () => {
+            this.downloadCurrentImage(modal);
+            this.showToast('Screenshot downloaded');
+        });
+        copyBtn.addEventListener('click', () => {
+            this.copyCurrentImageToClipboard(modal);
+            this.showToast('Copied to clipboard');
+        });
         
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
@@ -374,83 +372,100 @@ class GlocoSelector {
     }
     
     setActiveSwatch(floatingControls, color) {
-        const swatches = floatingControls.querySelectorAll('.color-swatch');
-        swatches.forEach(swatch => {
-            swatch.classList.remove('active');
-            if (swatch.dataset.color === color) {
-                swatch.classList.add('active');
-            }
-        });
+        // Remove active class from all swatches
+        const allSwatches = floatingControls.querySelectorAll('.color-swatch');
+        allSwatches.forEach(swatch => swatch.classList.remove('active'));
+        
+        // Find and mark the matching swatch as active
+        const matchingSwatch = Array.from(allSwatches).find(
+            swatch => swatch.getAttribute('data-color').toLowerCase() === color.toLowerCase()
+        );
+        
+        if (matchingSwatch) {
+            matchingSwatch.classList.add('active');
+        }
     }
     
-    setupModalEditing(modal, floatingControls) {
-        const colorPicker = floatingControls.querySelector('#modal-color-picker');
+    setupModalEditing(modal, floatingControls, colorPicker) {
         const paddingSlider = floatingControls.querySelector('#modal-padding-slider');
         const paddingValue = floatingControls.querySelector('#modal-padding-value');
         const outerRadiusSlider = floatingControls.querySelector('#modal-outer-radius-slider');
         const outerRadiusValue = floatingControls.querySelector('#modal-outer-radius-value');
         const innerRadiusSlider = floatingControls.querySelector('#modal-inner-radius-slider');
         const innerRadiusValue = floatingControls.querySelector('#modal-inner-radius-value');
-        const screenshotImg = modal.querySelector('.gloco-screenshot');
-        const swatches = floatingControls.querySelectorAll('.color-swatch');
         
-        let updateTimeout;
+        // Get initial values
         let currentColor = colorPicker.value;
+        let currentPadding = parseInt(paddingSlider.value);
+        let currentOuterRadius = parseInt(outerRadiusSlider.value);
+        let currentInnerRadius = parseInt(innerRadiusSlider.value);
+        
+        // Apply settings to modal
+        const screenshotContainer = modal.querySelector('.gloco-screenshot-container');
+        const screenshot = modal.querySelector('.gloco-screenshot');
         
         const updateScreenshot = (color = currentColor) => {
-            clearTimeout(updateTimeout);
-            updateTimeout = setTimeout(async () => {
-                const padding = parseInt(paddingSlider.value);
-                const outerRadius = parseInt(outerRadiusSlider.value);
-                const innerRadius = parseInt(innerRadiusSlider.value);
-                
-                // Regenerate the image with new settings
-                const newImageUrl = await this.regenerateScreenshot(color, padding, outerRadius, innerRadius);
-                if (newImageUrl) {
-                    // Clean up old image URL
-                    if (screenshotImg.src.startsWith('blob:')) {
-                        URL.revokeObjectURL(screenshotImg.src);
-                    }
-                    screenshotImg.src = newImageUrl;
+            screenshotContainer.style.backgroundColor = color;
+            screenshotContainer.style.padding = `${currentPadding}px`;
+            
+            // Update border radius for the container (outer)
+            screenshotContainer.style.borderRadius = `${currentOuterRadius}px ${currentOuterRadius}px 0 0`;
+            
+            // Update border radius for the screenshot (inner)
+            screenshot.style.borderRadius = `${currentInnerRadius}px`;
+            
+            // Save settings
+            chrome.storage.local.set({
+                gloco_settings: {
+                    color: color,
+                    padding: currentPadding,
+                    outerRadius: currentOuterRadius,
+                    innerRadius: currentInnerRadius
                 }
-            }, 100);
+            });
         };
         
-        // Handle swatch clicks
-        swatches.forEach(swatch => {
+        // Initial update
+        updateScreenshot();
+        
+        // Color swatch selection
+        const colorSwatches = floatingControls.querySelectorAll('.color-swatch');
+        colorSwatches.forEach(swatch => {
             swatch.addEventListener('click', () => {
-                swatches.forEach(s => s.classList.remove('active'));
-                swatch.classList.add('active');
+                const color = swatch.getAttribute('data-color');
+                currentColor = color;
+                colorPicker.value = color;
                 
-                currentColor = swatch.dataset.color;
-                colorPicker.value = currentColor;
-                updateScreenshot(currentColor);
+                // Update active swatch
+                this.setActiveSwatch(floatingControls, color);
+                
+                // Update screenshot
+                updateScreenshot(color);
             });
         });
         
-        // Handle custom color picker
-        colorPicker.addEventListener('input', (e) => {
-            currentColor = e.target.value;
-            swatches.forEach(s => s.classList.remove('active'));
-            updateScreenshot(currentColor);
-        });
-        
+        // Handle padding slider
         paddingSlider.addEventListener('input', (e) => {
-            paddingValue.textContent = e.target.value + 'px';
+            currentPadding = parseInt(e.target.value);
+            paddingValue.textContent = `${currentPadding}px`;
+            updateScreenshot();
             this.updateTrackFill(paddingSlider, 'padding-track-fill');
-            updateScreenshot();
         });
         
+        // Handle outer radius slider
         outerRadiusSlider.addEventListener('input', (e) => {
-            outerRadiusValue.textContent = e.target.value + 'px';
-            this.updateTrackFill(outerRadiusSlider, 'outer-radius-track-fill');
+            currentOuterRadius = parseInt(e.target.value);
+            outerRadiusValue.textContent = `${currentOuterRadius}px`;
             updateScreenshot();
+            this.updateTrackFill(outerRadiusSlider, 'outer-radius-track-fill');
         });
         
+        // Handle inner radius slider
         innerRadiusSlider.addEventListener('input', (e) => {
-            innerRadiusValue.textContent = e.target.value + 'px';
-            this.updateTrackFill(innerRadiusSlider, 'inner-radius-track-fill');
+            currentInnerRadius = parseInt(e.target.value);
+            innerRadiusValue.textContent = `${currentInnerRadius}px`;
             updateScreenshot();
+            this.updateTrackFill(innerRadiusSlider, 'inner-radius-track-fill');
         });
     }
     
@@ -588,32 +603,37 @@ class GlocoSelector {
     }
     
     showToast(message) {
+        // Remove any existing toasts
+        const existingToasts = document.querySelectorAll('.gloco-toast');
+        existingToasts.forEach(toast => toast.remove());
+        
+        // Create new toast
         const toast = document.createElement('div');
-        toast.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-family: Inter, sans-serif;
-            font-size: 14px;
-            z-index: 1000001;
-            animation: glocoFadeIn 0.3s ease;
+        toast.className = 'gloco-toast';
+        toast.innerHTML = `
+            <div class="gloco-toast-content">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                <span>${message}</span>
+            </div>
         `;
-        toast.textContent = message;
         
         document.body.appendChild(toast);
         
+        // Animate in
         setTimeout(() => {
-            toast.style.opacity = '0';
+            toast.classList.add('show');
+        }, 10);
+        
+        // Automatically remove after 3 seconds
+        setTimeout(() => {
+            toast.classList.remove('show');
             setTimeout(() => {
-                if (toast.parentNode) {
-                    document.body.removeChild(toast);
-                }
+                toast.remove();
             }, 300);
-        }, 2000);
+        }, 3000);
     }
     
     closeModal(modal, imageUrl, floatingControls) {
