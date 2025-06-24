@@ -339,8 +339,27 @@ class GlocoSelector {
             this.showToast('Screenshot downloaded');
         });
         copyBtn.addEventListener('click', () => {
+            // Change button text and disable temporarily
+            const originalHTML = copyBtn.innerHTML;
+            copyBtn.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                Copied
+            `;
+            copyBtn.disabled = true;
+            copyBtn.style.opacity = '0.8';
+            
             this.copyCurrentImageToClipboard(modal);
             this.showToast('Copied to clipboard');
+            
+            // Revert button after 2 seconds
+            setTimeout(() => {
+                copyBtn.innerHTML = originalHTML;
+                copyBtn.disabled = false;
+                copyBtn.style.opacity = '1';
+            }, 2000);
         });
         
         modal.addEventListener('click', (e) => {
