@@ -199,30 +199,14 @@ class GlocoSelector {
             originalScreenshotData: null
         };
         
-        // Determine orientation for responsive sizing
-        const aspectRatio = width / height;
-        let orientationClass = '';
-        let screenshotClass = '';
-        
-        if (aspectRatio > 1.3) {
-            orientationClass = 'landscape';
-            screenshotClass = 'landscape';
-        } else if (aspectRatio < 0.8) {
-            orientationClass = 'portrait';
-            screenshotClass = 'portrait';
-        } else {
-            orientationClass = 'square';
-            screenshotClass = 'square';
-        }
-        
         const modal = document.createElement('div');
         modal.className = 'gloco-modal';
         
         modal.innerHTML = `
-            <div class="gloco-modal-content ${orientationClass}">
+            <div class="gloco-modal-content">
                 <button class="gloco-close-btn">×</button>
                 <div class="gloco-screenshot-container">
-                    <img src="${imageUrl}" alt="Screenshot" class="gloco-screenshot ${screenshotClass}" />
+                    <img src="${imageUrl}" alt="Screenshot" class="gloco-screenshot" />
                 </div>
                 <div class="gloco-modal-actions">
                     <button class="gloco-action-btn secondary" id="copyBtn">
@@ -300,6 +284,9 @@ class GlocoSelector {
         
         document.body.appendChild(modal);
         document.body.appendChild(floatingControls);
+        
+        // Size the modal to fit the screenshot
+        this.resizeModalToFitScreenshot(modal, imageUrl);
         
         // Load current settings
         chrome.storage.local.get('gloco_settings', (data) => {
@@ -393,6 +380,7 @@ class GlocoSelector {
         const outerRadiusValue = floatingControls.querySelector('#modal-outer-radius-value');
         const innerRadiusSlider = floatingControls.querySelector('#modal-inner-radius-slider');
         const innerRadiusValue = floatingControls.querySelector('#modal-inner-radius-value');
+        const screenshotImg = modal.querySelector('.gloco-screenshot');
         
         // Get initial values
         let currentColor = colorPicker.value;
@@ -400,33 +388,35 @@ class GlocoSelector {
         let currentOuterRadius = parseInt(outerRadiusSlider.value);
         let currentInnerRadius = parseInt(innerRadiusSlider.value);
         
-        // Apply settings to modal
-        const screenshotContainer = modal.querySelector('.gloco-screenshot-container');
-        const screenshot = modal.querySelector('.gloco-screenshot');
+        let updateTimeout;
         
-        const updateScreenshot = (color = currentColor) => {
-            screenshotContainer.style.backgroundColor = color;
-            screenshotContainer.style.padding = `${currentPadding}px`;
-            
-            // Update border radius for the container (outer)
-            screenshotContainer.style.borderRadius = `${currentOuterRadius}px ${currentOuterRadius}px 0 0`;
-            
-            // Update border radius for the screenshot (inner)
-            screenshot.style.borderRadius = `${currentInnerRadius}px`;
-            
-            // Save settings
-            chrome.storage.local.set({
-                gloco_settings: {
-                    color: color,
-                    padding: currentPadding,
-                    outerRadius: currentOuterRadius,
-                    innerRadius: currentInnerRadius
+        const updateScreenshot = async (color = currentColor) => {
+            clearTimeout(updateTimeout);
+            updateTimeout = setTimeout(async () => {
+                // Regenerate the image with new settings
+                const newImageUrl = await this.regenerateScreenshot(color, currentPadding, currentOuterRadius, currentInnerRadius);
+                if (newImageUrl) {
+                    // Clean up old image URL
+                    if (screenshotImg.src.startsWith('blob:')) {
+                        URL.revokeObjectURL(screenshotImg.src);
+                    }
+                    screenshotImg.src = newImageUrl;
+                    
+                    // Resize modal to fit new screenshot
+                    this.resizeModalToFitScreenshot(modal, newImageUrl);
                 }
-            });
+                
+                // Save settings
+                chrome.storage.local.set({
+                    gloco_settings: {
+                        color: color,
+                        padding: currentPadding,
+                        outerRadius: currentOuterRadius,
+                        innerRadius: currentInnerRadius
+                    }
+                });
+            }, 150);
         };
-        
-        // Initial update
-        updateScreenshot();
         
         // Color swatch selection
         const colorSwatches = floatingControls.querySelectorAll('.color-swatch');
@@ -796,6 +786,21 @@ class GlocoSelector {
         const sliderValue = slider.value;
         const trackFillWidth = (sliderValue / slider.max) * trackWidth;
         trackFill.style.width = trackFillWidth + 'px';
+    }
+
+    resizeModalToFitScreenshot(modal, imageUrl) {
+        const img = new Image();
+        img.onload = () => {
+            const modalContent = modal.querySelector('.gloco-modal-content');
+            const actionsHeight = 70; // Height of the action buttons area
+            
+            // Set modal content size to match image + actions
+            modalContent.style.width = img.width + 'px';
+            modalContent.style.height = (img.height + actionsHeight) + 'px';
+            modalContent.style.maxWidth = '90vw';
+            modalContent.style.maxHeight = '90vh';
+        };
+        img.src = imageUrl;
     }
 }
 
