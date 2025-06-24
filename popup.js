@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Auto-start capture when popup opens
+    autoStartCapture();
+    
     // Main elements
     const captureBtn = document.getElementById('captureBtn');
     const popupContainer = document.querySelector('.popup-container');
@@ -16,14 +19,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load settings from storage
     initializeSettings();
 
-    // --- Event Listeners ---
-
-    // Start capture
-    captureBtn.addEventListener('click', async function() {
-        // Disable button to prevent multiple clicks
-        captureBtn.disabled = true;
-        captureBtn.style.opacity = '0.6';
-        
+    // Auto-start capture function
+    async function autoStartCapture() {
         try {
             const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
             
@@ -33,9 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 tab.url.startsWith('moz-extension://') ||
                 tab.url.startsWith('edge://') ||
                 tab.url.startsWith('about:')) {
-                alert('Screenshots cannot be taken on browser internal pages. Please navigate to a regular webpage.');
-                captureBtn.disabled = false;
-                captureBtn.style.opacity = '1';
+                // Show settings instead for browser pages
                 return;
             }
 
@@ -62,8 +57,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     files: ['content.js']
                 });
 
-                // Wait a bit longer for initialization
-                await new Promise(resolve => setTimeout(resolve, 500));
+                // Wait a bit for initialization
+                await new Promise(resolve => setTimeout(resolve, 300));
 
                 // Try sending message again
                 await chrome.tabs.sendMessage(tab.id, { action: 'startSelection' });
@@ -71,25 +66,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 
             } catch (injectionError) {
                 console.error('Error injecting content script:', injectionError);
-                
-                // More specific error messages
-                if (injectionError.message.includes('cannot be scripted')) {
-                    alert('Cannot capture screenshots on this page. Please try on a regular webpage (not a browser settings or extension page).');
-                } else if (injectionError.message.includes('No tab')) {
-                    alert('Tab not found. Please try again.');
-                } else {
-                    alert('Failed to initialize screenshot capture. Please refresh the page and try again.');
-                }
+                // Silently fail and show normal popup
             }
             
         } catch (error) {
-            console.error('General error:', error);
-            alert('An unexpected error occurred. Please try again.');
-        } finally {
-            // Re-enable button
-            captureBtn.disabled = false;
-            captureBtn.style.opacity = '1';
+            console.error('Auto-capture error:', error);
+            // Silently fail and show normal popup
         }
+    }
+
+    // --- Event Listeners ---
+
+    // Manual capture (fallback)
+    captureBtn.addEventListener('click', async function() {
+        autoStartCapture();
     });
     
     // Show settings panel
@@ -128,8 +118,18 @@ document.addEventListener('DOMContentLoaded', function() {
     function saveSettings() {
         clearTimeout(saveTimeout);
         saveTimeout = setTimeout(() => {
-            chrome.storage.local.set({ gloco_settings: currentSettings }, () => {
-                console.log('Gloco settings saved:', currentSettings);
+            const color = document.getElementById('color-picker').value;
+            const padding = parseInt(document.getElementById('padding-slider').value);
+            const innerRadius = parseInt(document.getElementById('radius-slider').value);
+            
+            const settings = { 
+                color, 
+                padding, 
+                outerRadius: 16, // Default outer radius
+                innerRadius 
+            };
+            chrome.storage.local.set({ gloco_settings: settings }, () => {
+                console.log('Gloco settings saved:', settings);
             });
         }, 100);
     }
@@ -137,15 +137,24 @@ document.addEventListener('DOMContentLoaded', function() {
     // Settings management
     function initializeSettings() {
         chrome.storage.local.get('gloco_settings', (data) => {
-            const settings = data.gloco_settings || { color: '#ff5533', padding: 30 };
+            const settings = data.gloco_settings || { 
+                color: '#ff5533', 
+                padding: 30, 
+                outerRadius: 16, 
+                innerRadius: 12 
+            };
             
             const colorPicker = document.getElementById('color-picker');
             const paddingSlider = document.getElementById('padding-slider');
             const paddingValue = document.getElementById('padding-value');
+            const radiusSlider = document.getElementById('radius-slider');
+            const radiusValue = document.getElementById('radius-value');
             
             colorPicker.value = settings.color;
             paddingSlider.value = settings.padding;
             paddingValue.textContent = settings.padding;
+            radiusSlider.value = settings.innerRadius || 12;
+            radiusValue.textContent = settings.innerRadius || 12;
             
             // Set active swatch
             setActiveSwatch(settings.color);
@@ -170,6 +179,11 @@ document.addEventListener('DOMContentLoaded', function() {
             
             paddingSlider.addEventListener('input', (e) => {
                 paddingValue.textContent = e.target.value;
+                saveSettings();
+            });
+            
+            radiusSlider.addEventListener('input', (e) => {
+                radiusValue.textContent = e.target.value;
                 saveSettings();
             });
         });

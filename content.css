@@ -35,227 +35,406 @@
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.85);
-    z-index: 1000000;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
     display: flex;
-    align-items: center;
     justify-content: center;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    opacity: 0;
-    animation: glocoFadeIn 0.2s ease forwards;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    align-items: center;
+    z-index: 999999;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .gloco-modal-content {
-    background: #ffffff;
-    border-radius: 16px;
-    max-width: 90vw;
-    max-height: 90vh;
+    background: white;
+    border-radius: 12px;
+    max-width: min(90vw, 800px);
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
     position: relative;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-    transform: scale(0.98);
-    animation: glocoScaleIn 0.2s ease forwards;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+    margin: 20px;
+    min-width: 400px;
+}
+
+.gloco-modal-content.landscape {
+    max-width: min(90vw, 900px);
+    min-width: 600px;
+}
+
+.gloco-modal-content.portrait {
+    max-width: min(70vw, 500px);
+    min-width: 350px;
+}
+
+.gloco-modal-content.square {
+    max-width: min(80vw, 600px);
+    min-width: 450px;
 }
 
 .gloco-modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 24px 24px 0 24px;
+    padding: 16px 20px;
+    border-bottom: 1px solid #f3f4f6;
 }
 
 .gloco-modal-title {
-    color: #1a1a1a;
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 600;
+    color: #111827;
     margin: 0;
 }
 
 .gloco-close-btn {
-    background: rgba(0, 0, 0, 0.05);
+    background: none;
     border: none;
-    color: #666;
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
+    font-size: 20px;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    color: #6b7280;
+    padding: 4px;
+    border-radius: 4px;
     transition: all 0.2s ease;
-    font-size: 16px;
 }
 
 .gloco-close-btn:hover {
-    background: rgba(0, 0, 0, 0.1);
-    color: #333;
+    background: #f3f4f6;
+    color: #374151;
 }
 
 .gloco-screenshot-container {
-    padding: 24px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 200px;
+    padding: 20px 20px 0 20px;
+    text-align: center;
 }
 
 .gloco-screenshot {
     max-width: 100%;
-    max-height: 60vh;
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    max-height: min(60vh, 500px);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     object-fit: contain;
 }
 
-.gloco-editor-controls {
-    margin: 0 24px 24px 24px;
-    padding: 20px;
-    background: #f8f9fa;
-    border-radius: 12px;
-    border: 1px solid #e9ecef;
+.gloco-screenshot.landscape {
+    max-height: min(50vh, 400px);
 }
 
-.editor-section {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-    align-items: end;
+.gloco-screenshot.portrait {
+    max-height: min(70vh, 600px);
 }
 
-.control-group {
+.gloco-screenshot.square {
+    max-height: min(60vh, 500px);
+}
+
+/* Floating Controls */
+.gloco-floating-controls {
+    position: fixed;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1000000;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-}
-
-.control-group label {
-    font-size: 14px;
-    font-weight: 500;
-    color: #374151;
-    margin-bottom: 4px;
-}
-
-.control-group input[type="color"] {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 100%;
-    height: 44px;
-    border: 2px solid #e5e7eb;
-    border-radius: 10px;
-    background: #ffffff;
-    cursor: pointer;
-    padding: 0;
-    transition: border-color 0.2s ease;
-}
-
-.control-group input[type="color"]:hover {
-    border-color: #d1d5db;
-}
-
-.control-group input[type="color"]::-webkit-color-swatch-wrapper {
-    padding: 4px;
-    border-radius: 8px;
-}
-
-.control-group input[type="color"]::-webkit-color-swatch {
-    border: none;
-    border-radius: 6px;
-}
-
-.control-group input[type="range"] {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 100%;
-    height: 6px;
-    background: #e5e7eb;
-    border-radius: 3px;
-    outline: none;
-    cursor: pointer;
-    transition: background 0.2s ease;
-}
-
-.control-group input[type="range"]:hover {
-    background: #d1d5db;
-}
-
-.control-group input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    background: #ffffff;
-    cursor: pointer;
-    border-radius: 50%;
-    border: 2px solid #6366f1;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    transition: all 0.2s ease;
-}
-
-.control-group input[type="range"]::-webkit-slider-thumb:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.control-group input[type="range"]::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
-    background: #ffffff;
-    cursor: pointer;
-    border-radius: 50%;
-    border: 2px solid #6366f1;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-.gloco-modal-actions {
-    display: flex;
     gap: 12px;
-    padding: 0 24px 24px 24px;
-    justify-content: flex-end;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+    opacity: 0;
+    animation: slideInLeft 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.gloco-action-btn {
-    background: #1f2937;
-    border: none;
-    color: #ffffff;
-    padding: 12px 20px;
-    border-radius: 10px;
-    font-family: inherit;
-    font-size: 14px;
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateY(-50%) translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(-50%) translateX(0);
+    }
+}
+
+.floating-panel {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    min-width: 200px;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: translateX(0);
+}
+
+.floating-panel:hover {
+    transform: translateX(4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    background: rgba(255, 255, 255, 0.98);
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.panel-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.panel-value {
+    font-size: 12px;
     font-weight: 500;
-    cursor: pointer;
+    color: #6b7280;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 2px 6px;
+    border-radius: 4px;
     transition: all 0.2s ease;
+    min-width: 32px;
+    text-align: center;
+}
+
+/* Floating Color Swatches */
+.gloco-floating-controls .color-swatches {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.gloco-floating-controls .color-swatch {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.gloco-floating-controls .color-swatch:hover {
+    transform: scale(1.08);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.gloco-floating-controls .color-swatch.active {
+    border-color: #000;
+    transform: scale(1.08);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.gloco-floating-controls .color-swatch.active::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    animation: checkmarkPop 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes checkmarkPop {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+.gloco-floating-controls .color-swatch[data-color="#ffffff"].active::after {
+    color: #000;
+    text-shadow: none;
+}
+
+.gloco-floating-controls .custom-color-section {
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-.gloco-action-btn:hover {
-    background: #374151;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+.gloco-floating-controls .custom-color-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    color: #374151;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+    width: 100%;
+    justify-content: center;
 }
 
-.gloco-action-btn:active {
+.gloco-floating-controls .custom-color-btn:hover {
+    background: rgba(0, 0, 0, 0.08);
+    border-color: rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+}
+
+.gloco-floating-controls .custom-color-btn:active {
     transform: translateY(0);
 }
 
-/* Animations */
-@keyframes glocoFadeIn {
-    to {
-        opacity: 1;
-    }
+/* Floating Sliders */
+.slider-container {
+    position: relative;
+    height: 20px;
+    display: flex;
+    align-items: center;
 }
 
-@keyframes glocoScaleIn {
-    to {
-        transform: scale(1);
-    }
+.floating-slider {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(0, 0, 0, 0.1);
+    outline: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    z-index: 2;
+}
+
+.floating-slider:hover {
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.floating-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #000;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    z-index: 3;
+}
+
+.floating-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.floating-slider::-webkit-slider-thumb:active {
+    transform: scale(1.1);
+}
+
+.floating-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #000;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.floating-slider::-moz-range-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* Slider Track Fill */
+.slider-track-fill {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    height: 6px;
+    background: linear-gradient(90deg, #000 0%, #666 100%);
+    border-radius: 3px;
+    transform: translateY(-50%);
+    transition: width 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Clean up modal - remove old editor controls styles */
+.gloco-editor-controls,
+.editor-section,
+.control-group {
+    display: none;
+}
+
+/* Hidden color input */
+.hidden-color-input {
+    opacity: 0;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+}
+
+/* Modal Actions */
+.gloco-modal-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 16px 20px;
+    border-top: 1px solid #f3f4f6;
+    background: #fafbfc;
+    border-radius: 0 0 12px 12px;
+}
+
+.gloco-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+    transition: all 0.2s ease;
+    min-width: 80px;
+    justify-content: center;
+}
+
+.gloco-action-btn.secondary {
+    background: #f8f9fa;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+}
+
+.gloco-action-btn.secondary:hover {
+    background: #f1f3f4;
+    border-color: #d1d5db;
+}
+
+.gloco-action-btn.primary {
+    background: #000;
+    color: white;
+}
+
+.gloco-action-btn.primary:hover {
+    background: #1f2937;
+}
+
+.gloco-action-btn:active {
+    transform: translateY(1px);
 }
 
 /* Instructions */
@@ -290,197 +469,9 @@
     z-index: 999999;
 }
 
-/* Color Picker Styles */
-.custom-color-picker {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.color-swatches {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 8px;
-    padding: 0;
-    margin: 0;
-}
-
-.color-swatch {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: all 0.2s ease;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.color-swatch:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-}
-
-.color-swatch.active {
-    border-color: #000;
-    transform: scale(1.1);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-}
-
-.color-swatch.active::after {
-    content: '✓';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: white;
-    font-weight: bold;
-    font-size: 16px;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-.color-swatch[data-color="#ffffff"].active::after {
-    color: #000;
-    text-shadow: none;
-}
-
-.custom-color-section {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.hidden-color-input {
-    opacity: 0;
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-}
-
-.custom-color-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 12px;
-    background: #f8f9fa;
-    border: 1px solid #e5e7eb;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-    color: #374151;
-    transition: all 0.2s ease;
-    font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
-}
-
-.custom-color-btn:hover {
-    background: #f1f3f4;
-    border-color: #d1d5db;
-}
-
-.custom-color-btn:active {
-    background: #e5e7eb;
-}
-
-/* Range Slider Improvements */
-.custom-range-container {
-    position: relative;
-    margin-top: 8px;
-}
-
-#modal-padding-slider {
-    width: 100%;
-    height: 6px;
-    border-radius: 3px;
-    background: #e5e7eb;
-    outline: none;
-    -webkit-appearance: none;
-    margin: 12px 0;
-}
-
-#modal-padding-slider::-webkit-slider-thumb {
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #000;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    transition: all 0.2s ease;
-}
-
-#modal-padding-slider::-webkit-slider-thumb:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-#modal-padding-slider::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #000;
-    cursor: pointer;
-    border: none;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    transition: all 0.2s ease;
-}
-
-.range-labels {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-    color: #6b7280;
-    margin-top: 4px;
-}
-
-/* Button Improvements */
-.gloco-modal-actions {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    justify-content: flex-end;
-    padding-top: 20px;
-    border-top: 1px solid #f3f4f6;
-}
-
-.gloco-action-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
-    transition: all 0.2s ease;
-    min-width: 100px;
-    justify-content: center;
-}
-
-.gloco-action-btn.secondary {
-    background: #f8f9fa;
-    color: #374151;
-    border: 1px solid #e5e7eb;
-}
-
-.gloco-action-btn.secondary:hover {
-    background: #f1f3f4;
-    border-color: #d1d5db;
-}
-
-.gloco-action-btn.primary {
-    background: #000;
-    color: white;
-}
-
-.gloco-action-btn.primary:hover {
-    background: #1f2937;
-}
-
-.gloco-action-btn:active {
-    transform: translateY(1px);
+/* Animations */
+@keyframes glocoFadeIn {
+    to {
+        opacity: 1;
+    }
 } 

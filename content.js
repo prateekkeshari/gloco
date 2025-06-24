@@ -154,19 +154,6 @@ class GlocoSelector {
     }
     
     async captureSelection(x, y, width, height) {
-        // 1. Fetch the latest settings from storage first.
-        let settings;
-        try {
-            const data = await chrome.storage.local.get('gloco_settings');
-            settings = data.gloco_settings || { color: '#ff5533', padding: 30 };
-        } catch (error) {
-            console.log('Storage access failed, using defaults:', error);
-            settings = { color: '#ff5533', padding: 30 };
-        }
-        
-        const PADDING = settings.padding;
-        const BRAND_COLOR = settings.color;
-
         try {
             this.overlay.style.display = 'none';
             await new Promise(resolve => setTimeout(resolve, 50));
@@ -174,46 +161,14 @@ class GlocoSelector {
             // Capture the visible tab
             const screenshotData = await this.captureTabScreenshot();
             
-            // Store for regeneration
-            this.lastCapturedData = {
-                x, y, width, height, screenshotData
-            };
+            // Generate final screenshot with current settings (including corner radius)
+            const finalImageUrl = await this.generateFinalScreenshot(screenshotData, { x, y, width, height });
             
-            const img = new Image();
-
-            await new Promise((resolve, reject) => {
-                img.onload = () => {
-                    const finalCanvas = document.createElement('canvas');
-                    finalCanvas.width = width + PADDING * 2;
-                    finalCanvas.height = height + PADDING * 2;
-                    const finalCtx = finalCanvas.getContext('2d');
-
-                    // Fill with brand color
-                    finalCtx.fillStyle = BRAND_COLOR;
-                    finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
-                    
-                    // Draw screenshot
-                    const scaleX = img.width / window.innerWidth;
-                    const scaleY = img.height / window.innerHeight;
-                    finalCtx.drawImage(
-                        img,
-                        x * scaleX, y * scaleY, width * scaleX, height * scaleY,
-                        PADDING, PADDING, width, height
-                    );
-
-                    finalCanvas.toBlob((blob) => {
-                        if (!blob) {
-                            reject(new Error("Canvas to Blob conversion failed"));
-                            return;
-                        }
-                        const imageUrlWithBg = URL.createObjectURL(blob);
-                        this.showScreenshotModal(imageUrlWithBg, width, height); 
-                        resolve();
-                    }, 'image/png');
-                };
-                img.onerror = () => reject(new Error("Image loading failed"));
-                img.src = screenshotData;
-            });
+            if (finalImageUrl) {
+                this.showScreenshotModal(finalImageUrl, width, height);
+            } else {
+                throw new Error("Failed to generate final screenshot");
+            }
 
         } catch (error) {
             console.error('Error capturing screenshot:', error);
@@ -244,60 +199,33 @@ class GlocoSelector {
             originalScreenshotData: null
         };
         
+        // Determine orientation for responsive sizing
+        const aspectRatio = width / height;
+        let orientationClass = '';
+        let screenshotClass = '';
+        
+        if (aspectRatio > 1.3) {
+            orientationClass = 'landscape';
+            screenshotClass = 'landscape';
+        } else if (aspectRatio < 0.8) {
+            orientationClass = 'portrait';
+            screenshotClass = 'portrait';
+        } else {
+            orientationClass = 'square';
+            screenshotClass = 'square';
+        }
+        
         const modal = document.createElement('div');
         modal.className = 'gloco-modal';
         
         modal.innerHTML = `
-            <div class="gloco-modal-content">
+            <div class="gloco-modal-content ${orientationClass}">
                 <div class="gloco-modal-header">
                     <h3 class="gloco-modal-title">Screenshot Captured</h3>
                     <button class="gloco-close-btn">×</button>
                 </div>
                 <div class="gloco-screenshot-container">
-                    <img src="${imageUrl}" alt="Screenshot" class="gloco-screenshot" />
-                </div>
-                <div class="gloco-editor-controls">
-                    <div class="editor-section">
-                        <div class="control-group">
-                            <label>Background Color</label>
-                            <div class="custom-color-picker">
-                                <div class="color-swatches">
-                                    <div class="color-swatch active" data-color="#ff5533" style="background: #ff5533"></div>
-                                    <div class="color-swatch" data-color="#ff6b6b" style="background: #ff6b6b"></div>
-                                    <div class="color-swatch" data-color="#4ecdc4" style="background: #4ecdc4"></div>
-                                    <div class="color-swatch" data-color="#45b7d1" style="background: #45b7d1"></div>
-                                    <div class="color-swatch" data-color="#f093fb" style="background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%)"></div>
-                                    <div class="color-swatch" data-color="#4facfe" style="background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%)"></div>
-                                    <div class="color-swatch" data-color="#43e97b" style="background: linear-gradient(45deg, #43e97b 0%, #38f9d7 100%)"></div>
-                                    <div class="color-swatch" data-color="#fa709a" style="background: linear-gradient(45deg, #fa709a 0%, #fee140 100%)"></div>
-                                    <div class="color-swatch" data-color="#667eea" style="background: linear-gradient(45deg, #667eea 0%, #764ba2 100%)"></div>
-                                    <div class="color-swatch" data-color="#f093fb" style="background: linear-gradient(45deg, #ffecd2 0%, #fcb69f 100%)"></div>
-                                    <div class="color-swatch" data-color="#000000" style="background: #000000"></div>
-                                    <div class="color-swatch" data-color="#ffffff" style="background: #ffffff; border: 2px solid #e5e7eb;"></div>
-                                </div>
-                                <div class="custom-color-section">
-                                    <input type="color" id="modal-color-picker" value="#ff5533" class="hidden-color-input">
-                                    <button class="custom-color-btn" onclick="document.getElementById('modal-color-picker').click()">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M12 2l3.09 6.26L22 9l-5.91 5.89L18 21l-6-3.27L6 21l1.91-6.11L2 9l6.91-.74L12 2z"/>
-                                        </svg>
-                                        Custom
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="control-group">
-                            <label>Padding: <span id="modal-padding-value">30</span>px</label>
-                            <div class="custom-range-container">
-                                <input type="range" id="modal-padding-slider" min="0" max="100" step="5" value="30">
-                                <div class="range-labels">
-                                    <span>0</span>
-                                    <span>50</span>
-                                    <span>100</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <img src="${imageUrl}" alt="Screenshot" class="gloco-screenshot ${screenshotClass}" />
                 </div>
                 <div class="gloco-modal-actions">
                     <button class="gloco-action-btn secondary" id="copyBtn">
@@ -319,24 +247,106 @@ class GlocoSelector {
             </div>
         `;
         
+        // Create floating controls
+        const floatingControls = document.createElement('div');
+        floatingControls.className = 'gloco-floating-controls';
+        floatingControls.innerHTML = `
+            <div class="floating-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Background</span>
+                </div>
+                <div class="color-swatches">
+                    <div class="color-swatch active" data-color="#ff5533" style="background: #ff5533"></div>
+                    <div class="color-swatch" data-color="#FFD938" style="background: #FFD938"></div>
+                    <div class="color-swatch" data-color="#1A2B49" style="background: #1A2B49"></div>
+                    <div class="color-swatch" data-color="#81BEFF" style="background: #81BEFF"></div>
+                    <div class="color-swatch" data-color="#A1D55D" style="background: #A1D55D"></div>
+                    <div class="color-swatch" data-color="#F4CDD7" style="background: #F4CDD7"></div>
+                    <div class="color-swatch" data-color="#000000" style="background: #000000"></div>
+                    <div class="color-swatch" data-color="#ffffff" style="background: #ffffff; border: 2px solid #e5e7eb;"></div>
+                </div>
+                <div class="custom-color-section">
+                    <input type="color" id="modal-color-picker" value="#ff5533" class="hidden-color-input">
+                    <button class="custom-color-btn" onclick="document.getElementById('modal-color-picker').click()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2l3.09 6.26L22 9l-5.91 5.89L18 21l-6-3.27L6 21l1.91-6.11L2 9l6.91-.74L12 2z"/>
+                        </svg>
+                        Custom
+                    </button>
+                </div>
+            </div>
+            
+            <div class="floating-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Padding</span>
+                    <span class="panel-value" id="modal-padding-value">30px</span>
+                </div>
+                <div class="slider-container">
+                    <input type="range" id="modal-padding-slider" min="0" max="100" step="1" value="30" class="floating-slider">
+                    <div class="slider-track-fill" id="padding-track-fill"></div>
+                </div>
+            </div>
+            
+            <div class="floating-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Outer Radius</span>
+                    <span class="panel-value" id="modal-outer-radius-value">16px</span>
+                </div>
+                <div class="slider-container">
+                    <input type="range" id="modal-outer-radius-slider" min="0" max="50" step="1" value="16" class="floating-slider">
+                    <div class="slider-track-fill" id="outer-radius-track-fill"></div>
+                </div>
+            </div>
+            
+            <div class="floating-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Inner Radius</span>
+                    <span class="panel-value" id="modal-inner-radius-value">12px</span>
+                </div>
+                <div class="slider-container">
+                    <input type="range" id="modal-inner-radius-slider" min="0" max="50" step="1" value="12" class="floating-slider">
+                    <div class="slider-track-fill" id="inner-radius-track-fill"></div>
+                </div>
+            </div>
+        `;
+        
         document.body.appendChild(modal);
+        document.body.appendChild(floatingControls);
         
         // Load current settings
         chrome.storage.local.get('gloco_settings', (data) => {
-            const settings = data.gloco_settings || { color: '#ff5533', padding: 30 };
-            const colorPicker = modal.querySelector('#modal-color-picker');
-            const paddingSlider = modal.querySelector('#modal-padding-slider');
-            const paddingValue = modal.querySelector('#modal-padding-value');
+            const settings = data.gloco_settings || { 
+                color: '#ff5533', 
+                padding: 30, 
+                outerRadius: 16, 
+                innerRadius: 12 
+            };
+            const colorPicker = floatingControls.querySelector('#modal-color-picker');
+            const paddingSlider = floatingControls.querySelector('#modal-padding-slider');
+            const paddingValue = floatingControls.querySelector('#modal-padding-value');
+            const outerRadiusSlider = floatingControls.querySelector('#modal-outer-radius-slider');
+            const outerRadiusValue = floatingControls.querySelector('#modal-outer-radius-value');
+            const innerRadiusSlider = floatingControls.querySelector('#modal-inner-radius-slider');
+            const innerRadiusValue = floatingControls.querySelector('#modal-inner-radius-value');
             
             colorPicker.value = settings.color;
             paddingSlider.value = settings.padding;
-            paddingValue.textContent = settings.padding;
+            paddingValue.textContent = settings.padding + 'px';
+            outerRadiusSlider.value = settings.outerRadius || 16;
+            outerRadiusValue.textContent = (settings.outerRadius || 16) + 'px';
+            innerRadiusSlider.value = settings.innerRadius || 12;
+            innerRadiusValue.textContent = (settings.innerRadius || 12) + 'px';
+            
+            // Initialize track fills
+            this.updateTrackFill(paddingSlider, 'padding-track-fill');
+            this.updateTrackFill(outerRadiusSlider, 'outer-radius-track-fill');
+            this.updateTrackFill(innerRadiusSlider, 'inner-radius-track-fill');
             
             // Set active swatch
-            this.setActiveSwatch(modal, settings.color);
+            this.setActiveSwatch(floatingControls, settings.color);
             
             // Set up real-time editing
-            this.setupModalEditing(modal);
+            this.setupModalEditing(modal, floatingControls);
         });
         
         // Event listeners for main actions
@@ -344,27 +354,27 @@ class GlocoSelector {
         const downloadBtn = modal.querySelector('#downloadBtn');
         const copyBtn = modal.querySelector('#copyBtn');
         
-        closeBtn.addEventListener('click', () => this.closeModal(modal, imageUrl));
+        closeBtn.addEventListener('click', () => this.closeModal(modal, imageUrl, floatingControls));
         downloadBtn.addEventListener('click', () => this.downloadCurrentImage(modal));
         copyBtn.addEventListener('click', () => this.copyCurrentImageToClipboard(modal));
         
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
-                this.closeModal(modal, imageUrl);
+                this.closeModal(modal, imageUrl, floatingControls);
             }
         });
         
         const escapeHandler = (e) => {
             if (e.key === 'Escape') {
-                this.closeModal(modal, imageUrl);
+                this.closeModal(modal, imageUrl, floatingControls);
                 document.removeEventListener('keydown', escapeHandler);
             }
         };
         document.addEventListener('keydown', escapeHandler);
     }
     
-    setActiveSwatch(modal, color) {
-        const swatches = modal.querySelectorAll('.color-swatch');
+    setActiveSwatch(floatingControls, color) {
+        const swatches = floatingControls.querySelectorAll('.color-swatch');
         swatches.forEach(swatch => {
             swatch.classList.remove('active');
             if (swatch.dataset.color === color) {
@@ -373,12 +383,16 @@ class GlocoSelector {
         });
     }
     
-    setupModalEditing(modal) {
-        const colorPicker = modal.querySelector('#modal-color-picker');
-        const paddingSlider = modal.querySelector('#modal-padding-slider');
-        const paddingValue = modal.querySelector('#modal-padding-value');
+    setupModalEditing(modal, floatingControls) {
+        const colorPicker = floatingControls.querySelector('#modal-color-picker');
+        const paddingSlider = floatingControls.querySelector('#modal-padding-slider');
+        const paddingValue = floatingControls.querySelector('#modal-padding-value');
+        const outerRadiusSlider = floatingControls.querySelector('#modal-outer-radius-slider');
+        const outerRadiusValue = floatingControls.querySelector('#modal-outer-radius-value');
+        const innerRadiusSlider = floatingControls.querySelector('#modal-inner-radius-slider');
+        const innerRadiusValue = floatingControls.querySelector('#modal-inner-radius-value');
         const screenshotImg = modal.querySelector('.gloco-screenshot');
-        const swatches = modal.querySelectorAll('.color-swatch');
+        const swatches = floatingControls.querySelectorAll('.color-swatch');
         
         let updateTimeout;
         let currentColor = colorPicker.value;
@@ -387,9 +401,11 @@ class GlocoSelector {
             clearTimeout(updateTimeout);
             updateTimeout = setTimeout(async () => {
                 const padding = parseInt(paddingSlider.value);
+                const outerRadius = parseInt(outerRadiusSlider.value);
+                const innerRadius = parseInt(innerRadiusSlider.value);
                 
                 // Regenerate the image with new settings
-                const newImageUrl = await this.regenerateScreenshot(color, padding);
+                const newImageUrl = await this.regenerateScreenshot(color, padding, outerRadius, innerRadius);
                 if (newImageUrl) {
                     // Clean up old image URL
                     if (screenshotImg.src.startsWith('blob:')) {
@@ -420,48 +436,90 @@ class GlocoSelector {
         });
         
         paddingSlider.addEventListener('input', (e) => {
-            paddingValue.textContent = e.target.value;
+            paddingValue.textContent = e.target.value + 'px';
+            this.updateTrackFill(paddingSlider, 'padding-track-fill');
+            updateScreenshot();
+        });
+        
+        outerRadiusSlider.addEventListener('input', (e) => {
+            outerRadiusValue.textContent = e.target.value + 'px';
+            this.updateTrackFill(outerRadiusSlider, 'outer-radius-track-fill');
+            updateScreenshot();
+        });
+        
+        innerRadiusSlider.addEventListener('input', (e) => {
+            innerRadiusValue.textContent = e.target.value + 'px';
+            this.updateTrackFill(innerRadiusSlider, 'inner-radius-track-fill');
             updateScreenshot();
         });
     }
     
-    async regenerateScreenshot(color, padding) {
+    async regenerateScreenshot(color, padding, outerRadius, innerRadius) {
         try {
             if (!this.lastCapturedData) return null;
             
-            const { x, y, width, height, screenshotData } = this.lastCapturedData;
-            const img = new Image();
+            const { imageUrl, croppedWidth, croppedHeight } = this.lastCapturedData;
             
+            // Create canvas for regeneration
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Calculate final dimensions
+            const finalWidth = croppedWidth + (padding * 2);
+            const finalHeight = croppedHeight + (padding * 2);
+            
+            canvas.width = finalWidth;
+            canvas.height = finalHeight;
+            
+            // Apply outer radius to entire canvas if specified
+            if (outerRadius > 0) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.roundRect(0, 0, finalWidth, finalHeight, outerRadius);
+                ctx.clip();
+            }
+            
+            // Fill background with color
+            ctx.fillStyle = color;
+            ctx.fillRect(0, 0, finalWidth, finalHeight);
+            
+            // Load and draw the cropped image
             return new Promise((resolve) => {
+                const img = new Image();
                 img.onload = () => {
-                    const finalCanvas = document.createElement('canvas');
-                    finalCanvas.width = width + padding * 2;
-                    finalCanvas.height = height + padding * 2;
-                    const finalCtx = finalCanvas.getContext('2d');
-
-                    // Fill with new color
-                    finalCtx.fillStyle = color;
-                    finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+                    // Save context state for inner radius
+                    ctx.save();
                     
-                    // Draw screenshot
-                    const scaleX = img.width / window.innerWidth;
-                    const scaleY = img.height / window.innerHeight;
-                    finalCtx.drawImage(
-                        img,
-                        x * scaleX, y * scaleY, width * scaleX, height * scaleY,
-                        padding, padding, width, height
-                    );
-
-                    finalCanvas.toBlob((blob) => {
-                        if (blob) {
-                            const newImageUrl = URL.createObjectURL(blob);
-                            resolve(newImageUrl);
-                        } else {
-                            resolve(null);
-                        }
+                    // Create rounded rectangle clipping path for the image (inner radius)
+                    const x = padding;
+                    const y = padding;
+                    const width = croppedWidth;
+                    const height = croppedHeight;
+                    
+                    if (innerRadius > 0) {
+                        ctx.beginPath();
+                        ctx.roundRect(x, y, width, height, innerRadius);
+                        ctx.clip();
+                    }
+                    
+                    // Draw the image
+                    ctx.drawImage(img, x, y, width, height);
+                    
+                    // Restore context state for inner radius
+                    ctx.restore();
+                    
+                    // Restore outer radius clipping if it was applied
+                    if (outerRadius > 0) {
+                        ctx.restore();
+                    }
+                    
+                    // Convert to blob and create URL
+                    canvas.toBlob((blob) => {
+                        const newImageUrl = URL.createObjectURL(blob);
+                        resolve(newImageUrl);
                     }, 'image/png');
                 };
-                img.src = screenshotData;
+                img.src = imageUrl;
             });
         } catch (error) {
             console.error('Error regenerating screenshot:', error);
@@ -558,11 +616,14 @@ class GlocoSelector {
         }, 2000);
     }
     
-    closeModal(modal, imageUrl) {
+    closeModal(modal, imageUrl, floatingControls) {
         modal.style.opacity = '0';
         setTimeout(() => {
             if (modal.parentNode) {
                 document.body.removeChild(modal);
+            }
+            if (floatingControls && floatingControls.parentNode) {
+                document.body.removeChild(floatingControls);
             }
             URL.revokeObjectURL(imageUrl);
         }, 300);
@@ -598,6 +659,123 @@ class GlocoSelector {
         if (this.overlay && this.overlay.parentNode) {
             this.overlay.parentNode.removeChild(this.overlay);
         }
+    }
+
+    async generateFinalScreenshot(screenshotDataUrl, selectionBox) {
+        const { x, y, width, height } = selectionBox;
+        
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                // Create canvas for cropping
+                const cropCanvas = document.createElement('canvas');
+                const cropCtx = cropCanvas.getContext('2d');
+                
+                // Calculate scale factors
+                const scaleX = img.width / window.innerWidth;
+                const scaleY = img.height / window.innerHeight;
+                
+                // Set crop canvas size to the selected area
+                const croppedWidth = width;
+                const croppedHeight = height;
+                cropCanvas.width = croppedWidth;
+                cropCanvas.height = croppedHeight;
+                
+                // Draw the cropped portion
+                cropCtx.drawImage(
+                    img,
+                    x * scaleX, y * scaleY, width * scaleX, height * scaleY,
+                    0, 0, croppedWidth, croppedHeight
+                );
+                
+                // Get the cropped image as data URL
+                const croppedImageUrl = cropCanvas.toDataURL('image/png');
+                
+                // Get current settings
+                chrome.storage.local.get('gloco_settings', (data) => {
+                    const settings = data.gloco_settings || { 
+                        color: '#ff5533', 
+                        padding: 30, 
+                        outerRadius: 16, 
+                        innerRadius: 12 
+                    };
+                    
+                    // Create final canvas with padding and radius
+                    const finalCanvas = document.createElement('canvas');
+                    const finalCtx = finalCanvas.getContext('2d');
+                    
+                    const finalWidth = croppedWidth + (settings.padding * 2);
+                    const finalHeight = croppedHeight + (settings.padding * 2);
+                    
+                    finalCanvas.width = finalWidth;
+                    finalCanvas.height = finalHeight;
+                    
+                    // Apply outer radius to entire canvas if specified
+                    if (settings.outerRadius > 0) {
+                        finalCtx.save();
+                        finalCtx.beginPath();
+                        finalCtx.roundRect(0, 0, finalWidth, finalHeight, settings.outerRadius);
+                        finalCtx.clip();
+                    }
+                    
+                    // Fill background
+                    finalCtx.fillStyle = settings.color;
+                    finalCtx.fillRect(0, 0, finalWidth, finalHeight);
+                    
+                    // Create cropped image to draw
+                    const croppedImg = new Image();
+                    croppedImg.onload = () => {
+                        // Save context state for inner radius
+                        finalCtx.save();
+                        
+                        // Create rounded rectangle clipping path for the image (inner radius)
+                        const imageX = settings.padding;
+                        const imageY = settings.padding;
+                        
+                        if (settings.innerRadius > 0) {
+                            finalCtx.beginPath();
+                            finalCtx.roundRect(imageX, imageY, croppedWidth, croppedHeight, settings.innerRadius);
+                            finalCtx.clip();
+                        }
+                        
+                        // Draw the cropped image
+                        finalCtx.drawImage(croppedImg, imageX, imageY, croppedWidth, croppedHeight);
+                        
+                        // Restore context state
+                        finalCtx.restore();
+                        
+                        // Restore outer radius clipping if it was applied
+                        if (settings.outerRadius > 0) {
+                            finalCtx.restore();
+                        }
+                        
+                        // Convert to blob and create URL
+                        finalCanvas.toBlob((blob) => {
+                            const finalImageUrl = URL.createObjectURL(blob);
+                            
+                            // Store data for regeneration
+                            this.lastCapturedData = {
+                                imageUrl: croppedImageUrl,
+                                croppedWidth,
+                                croppedHeight
+                            };
+                            
+                            resolve(finalImageUrl);
+                        }, 'image/png');
+                    };
+                    croppedImg.src = croppedImageUrl;
+                });
+            };
+            img.src = screenshotDataUrl;
+        });
+    }
+
+    updateTrackFill(slider, trackId) {
+        const trackFill = document.getElementById(trackId);
+        const trackWidth = slider.clientWidth;
+        const sliderValue = slider.value;
+        const trackFillWidth = (sliderValue / slider.max) * trackWidth;
+        trackFill.style.width = trackFillWidth + 'px';
     }
 }
 

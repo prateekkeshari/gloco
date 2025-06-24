@@ -43,7 +43,8 @@ chrome.runtime.onInstalled.addListener((details) => {
                 version: '1.0.0',
                 installed: Date.now(),
                 color: '#ff5533',
-                padding: 30
+                padding: 30,
+                radius: 12
             }
         });
         
