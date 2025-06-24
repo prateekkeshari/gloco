@@ -29,12 +29,16 @@ class GlocoSelector {
         this.showInstructions();
         
         // Prevent page scrolling during selection
-        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
     }
     
     createOverlay() {
         // Remove existing overlay if any
         this.removeOverlay();
+        
+        // Store current scroll position to preserve it
+        const currentScrollX = window.scrollX || window.pageXOffset;
+        const currentScrollY = window.scrollY || window.pageYOffset;
         
         this.overlay = document.createElement('div');
         this.overlay.className = 'gloco-overlay';
@@ -48,7 +52,14 @@ class GlocoSelector {
         this.overlay.tabIndex = -1;
         
         document.body.appendChild(this.overlay);
-        this.overlay.focus();
+        
+        // Focus without scrolling to preserve scroll position
+        this.overlay.focus({ preventScroll: true });
+        
+        // Restore scroll position if it changed
+        if (window.scrollX !== currentScrollX || window.scrollY !== currentScrollY) {
+            window.scrollTo(currentScrollX, currentScrollY);
+        }
     }
     
     showInstructions() {
@@ -666,7 +677,7 @@ class GlocoSelector {
         this.isSelecting = false;
         
         // Restore page scrolling
-        document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
         
         this.removeOverlay();
         
