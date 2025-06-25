@@ -43,6 +43,8 @@
     align-items: center;
     z-index: 999999;
     font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 .gloco-modal-content {
@@ -52,8 +54,8 @@
     box-shadow: none;
     display: flex;
     flex-direction: column;
-    max-height: 90vh;
-    max-width: 90vw;
+    max-height: 100%;
+    max-width: 100%;
     overflow: visible;
     transition: all 0.3s ease;
     gap: 16px;
@@ -94,10 +96,14 @@
     border-radius: 0;
     transition: all 0.3s ease;
     flex: 1;
+    overflow: hidden;
+    max-height: calc(100vh - 140px); /* Account for padding and actions */
 }
 
 .gloco-screenshot {
-    width: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
     height: auto;
     object-fit: contain;
     border-radius: 0;
@@ -131,6 +137,17 @@
     font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
     opacity: 0;
     animation: slideInLeft 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+}
+
+/* Responsive adjustments for small screens */
+@media (max-width: 768px) {
+    .gloco-floating-controls {
+        left: 10px;
+        gap: 8px;
+        max-height: calc(100vh - 20px);
+    }
 }
 
 @keyframes slideInLeft {

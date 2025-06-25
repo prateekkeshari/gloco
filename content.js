@@ -504,28 +504,44 @@ class GlocoSelector {
             
             const { imageUrl, croppedWidth, croppedHeight } = this.lastCapturedData;
             
-            // Create canvas for regeneration
+            // Get device pixel ratio for high-quality regeneration
+            const pixelRatio = window.devicePixelRatio || 1;
+            
+            // Create canvas for regeneration with high-quality settings
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             
-            // Calculate final dimensions
-            const finalWidth = croppedWidth + (padding * 2);
-            const finalHeight = croppedHeight + (padding * 2);
+            // Enable high-quality rendering
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            
+            // Calculate final dimensions using device pixel ratio
+            const cssWidth = croppedWidth + (padding * 2);
+            const cssHeight = croppedHeight + (padding * 2);
+            const finalWidth = Math.round(cssWidth * pixelRatio);
+            const finalHeight = Math.round(cssHeight * pixelRatio);
             
             canvas.width = finalWidth;
             canvas.height = finalHeight;
+            
+            // Set CSS size for proper display
+            canvas.style.width = cssWidth + 'px';
+            canvas.style.height = cssHeight + 'px';
+            
+            // Scale context for device pixel ratio
+            ctx.scale(pixelRatio, pixelRatio);
             
             // Apply outer radius to entire canvas if specified
             if (outerRadius > 0) {
                 ctx.save();
                 ctx.beginPath();
-                ctx.roundRect(0, 0, finalWidth, finalHeight, outerRadius);
+                ctx.roundRect(0, 0, cssWidth, cssHeight, outerRadius);
                 ctx.clip();
             }
             
             // Fill background with color
             ctx.fillStyle = color;
-            ctx.fillRect(0, 0, finalWidth, finalHeight);
+            ctx.fillRect(0, 0, cssWidth, cssHeight);
             
             // Load and draw the cropped image
             return new Promise((resolve) => {
@@ -546,7 +562,7 @@ class GlocoSelector {
                         ctx.clip();
                     }
                     
-                    // Draw the image
+                    // Draw the image at full quality
                     ctx.drawImage(img, x, y, width, height);
                     
                     // Restore context state for inner radius
@@ -716,29 +732,48 @@ class GlocoSelector {
         return new Promise((resolve) => {
             const img = new Image();
             img.onload = () => {
-                // Create canvas for cropping
+                // Get device pixel ratio for high-quality capture
+                const pixelRatio = window.devicePixelRatio || 1;
+                
+                // Create canvas for cropping with high-quality settings
                 const cropCanvas = document.createElement('canvas');
                 const cropCtx = cropCanvas.getContext('2d');
                 
-                // Calculate scale factors
+                // Enable high-quality rendering
+                cropCtx.imageSmoothingEnabled = true;
+                cropCtx.imageSmoothingQuality = 'high';
+                
+                // Calculate proper scale factors accounting for device pixel ratio
                 const scaleX = img.width / window.innerWidth;
                 const scaleY = img.height / window.innerHeight;
                 
-                // Set crop canvas size to the selected area
-                const croppedWidth = width;
-                const croppedHeight = height;
+                // Set crop canvas size to maintain quality - use device pixel ratio
+                const croppedWidth = Math.round(width * pixelRatio);
+                const croppedHeight = Math.round(height * pixelRatio);
                 cropCanvas.width = croppedWidth;
                 cropCanvas.height = croppedHeight;
                 
-                // Draw the cropped portion
+                // Scale canvas back to CSS pixels for proper display
+                cropCanvas.style.width = width + 'px';
+                cropCanvas.style.height = height + 'px';
+                
+                // Scale the context to account for device pixel ratio
+                cropCtx.scale(pixelRatio, pixelRatio);
+                
+                // Draw the cropped portion with precise pixel boundaries
+                const sourceX = Math.round(x * scaleX);
+                const sourceY = Math.round(y * scaleY);
+                const sourceWidth = Math.round(width * scaleX);
+                const sourceHeight = Math.round(height * scaleY);
+                
                 cropCtx.drawImage(
                     img,
-                    x * scaleX, y * scaleY, width * scaleX, height * scaleY,
-                    0, 0, croppedWidth, croppedHeight
+                    sourceX, sourceY, sourceWidth, sourceHeight,
+                    0, 0, width, height
                 );
                 
-                // Get the cropped image as data URL
-                const croppedImageUrl = cropCanvas.toDataURL('image/png');
+                // Get the cropped image as data URL with maximum quality
+                const croppedImageUrl = cropCanvas.toDataURL('image/png', 1.0);
                 
                 // Get current settings
                 chrome.storage.local.get('gloco_settings', (data) => {
@@ -749,27 +784,42 @@ class GlocoSelector {
                         innerRadius: 12 
                     };
                     
-                    // Create final canvas with padding and radius
+                    // Create final canvas with padding and radius - maintain high quality
                     const finalCanvas = document.createElement('canvas');
                     const finalCtx = finalCanvas.getContext('2d');
                     
-                    const finalWidth = croppedWidth + (settings.padding * 2);
-                    const finalHeight = croppedHeight + (settings.padding * 2);
+                    // Enable high-quality rendering for final canvas
+                    finalCtx.imageSmoothingEnabled = true;
+                    finalCtx.imageSmoothingQuality = 'high';
+                    
+                    // Use high-resolution dimensions for final canvas
+                    const finalWidth = Math.round((width + (settings.padding * 2)) * pixelRatio);
+                    const finalHeight = Math.round((height + (settings.padding * 2)) * pixelRatio);
                     
                     finalCanvas.width = finalWidth;
                     finalCanvas.height = finalHeight;
                     
+                    // Set CSS size for proper display
+                    finalCanvas.style.width = (width + (settings.padding * 2)) + 'px';
+                    finalCanvas.style.height = (height + (settings.padding * 2)) + 'px';
+                    
+                    // Scale context for device pixel ratio
+                    finalCtx.scale(pixelRatio, pixelRatio);
+                    
                     // Apply outer radius to entire canvas if specified
+                    const cssWidth = width + (settings.padding * 2);
+                    const cssHeight = height + (settings.padding * 2);
+                    
                     if (settings.outerRadius > 0) {
                         finalCtx.save();
                         finalCtx.beginPath();
-                        finalCtx.roundRect(0, 0, finalWidth, finalHeight, settings.outerRadius);
+                        finalCtx.roundRect(0, 0, cssWidth, cssHeight, settings.outerRadius);
                         finalCtx.clip();
                     }
                     
                     // Fill background
                     finalCtx.fillStyle = settings.color;
-                    finalCtx.fillRect(0, 0, finalWidth, finalHeight);
+                    finalCtx.fillRect(0, 0, cssWidth, cssHeight);
                     
                     // Create cropped image to draw
                     const croppedImg = new Image();
@@ -783,12 +833,12 @@ class GlocoSelector {
                         
                         if (settings.innerRadius > 0) {
                             finalCtx.beginPath();
-                            finalCtx.roundRect(imageX, imageY, croppedWidth, croppedHeight, settings.innerRadius);
+                            finalCtx.roundRect(imageX, imageY, width, height, settings.innerRadius);
                             finalCtx.clip();
                         }
                         
-                        // Draw the cropped image
-                        finalCtx.drawImage(croppedImg, imageX, imageY, croppedWidth, croppedHeight);
+                        // Draw the cropped image at full quality
+                        finalCtx.drawImage(croppedImg, imageX, imageY, width, height);
                         
                         // Restore context state
                         finalCtx.restore();
@@ -833,11 +883,37 @@ class GlocoSelector {
             const modalContent = modal.querySelector('.gloco-modal-content');
             const actionsHeight = 70; // Height of the action buttons area
             
-            // Set modal content size to match image + actions
-            modalContent.style.width = img.width + 'px';
-            modalContent.style.height = (img.height + actionsHeight) + 'px';
-            modalContent.style.maxWidth = '90vw';
-            modalContent.style.maxHeight = '90vh';
+            // Calculate viewport constraints with some padding
+            const maxWidth = Math.min(window.innerWidth * 0.9, window.innerWidth - 40);
+            const maxHeight = Math.min(window.innerHeight * 0.9, window.innerHeight - 40);
+            
+            // Calculate available space for the image (subtract actions height)
+            const availableHeight = maxHeight - actionsHeight;
+            
+            // Calculate scaling factor to fit within bounds
+            let scaleX = maxWidth / img.width;
+            let scaleY = availableHeight / img.height;
+            let scale = Math.min(scaleX, scaleY, 1); // Don't scale up, only down
+            
+            // Calculate final dimensions
+            const finalImageWidth = Math.floor(img.width * scale);
+            const finalImageHeight = Math.floor(img.height * scale);
+            const finalModalWidth = finalImageWidth;
+            const finalModalHeight = finalImageHeight + actionsHeight;
+            
+            // Apply the calculated dimensions
+            modalContent.style.width = finalModalWidth + 'px';
+            modalContent.style.height = finalModalHeight + 'px';
+            modalContent.style.maxWidth = 'none'; // Remove conflicting max constraints
+            modalContent.style.maxHeight = 'none';
+            
+            // Update the screenshot image size to match
+            const screenshotImg = modalContent.querySelector('.gloco-screenshot');
+            if (screenshotImg) {
+                screenshotImg.style.width = finalImageWidth + 'px';
+                screenshotImg.style.height = finalImageHeight + 'px';
+                screenshotImg.style.objectFit = 'contain';
+            }
         };
         img.src = imageUrl;
     }
