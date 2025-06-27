@@ -431,6 +431,11 @@ class GlocoSelector {
         
         const updateScreenshot = async (color = currentColor) => {
             clearTimeout(updateTimeout);
+            
+            // Immediate visual feedback - show loading state
+            screenshotImg.style.opacity = '0.6';
+            screenshotImg.style.transition = 'opacity 0.1s ease';
+            
             updateTimeout = setTimeout(async () => {
                 // Regenerate the image with new settings
                 const newImageUrl = await this.regenerateScreenshot(color, currentPadding, currentOuterRadius, currentInnerRadius);
@@ -441,7 +446,9 @@ class GlocoSelector {
                     }
                     screenshotImg.src = newImageUrl;
                     
-                    // Resize modal to fit new screenshot
+                    // Restore opacity and resize modal
+                    screenshotImg.style.opacity = '1';
+                    screenshotImg.style.transition = 'opacity 0.2s ease';
                     this.resizeModalToFitScreenshot(modal, newImageUrl);
                 }
                 
@@ -454,7 +461,7 @@ class GlocoSelector {
                         innerRadius: currentInnerRadius
                     }
                 });
-            }, 150);
+            }, 50); // Reduced from 150ms to 50ms
         };
         
         // Color swatch selection
@@ -465,11 +472,13 @@ class GlocoSelector {
                 currentColor = color;
                 colorPicker.value = color;
                 
-                // Update active swatch
+                // Update active swatch immediately
                 this.setActiveSwatch(floatingControls, color);
                 
-                // Update screenshot
-                updateScreenshot(color);
+                // Update screenshot with immediate feedback
+                requestAnimationFrame(() => {
+                    updateScreenshot(color);
+                });
             });
         });
         
@@ -477,24 +486,30 @@ class GlocoSelector {
         paddingSlider.addEventListener('input', (e) => {
             currentPadding = parseInt(e.target.value);
             paddingValue.textContent = `${currentPadding}px`;
-            updateScreenshot();
             this.updateTrackFill(paddingSlider, 'padding-track-fill');
+            requestAnimationFrame(() => {
+                updateScreenshot();
+            });
         });
         
         // Handle outer radius slider
         outerRadiusSlider.addEventListener('input', (e) => {
             currentOuterRadius = parseInt(e.target.value);
             outerRadiusValue.textContent = `${currentOuterRadius}px`;
-            updateScreenshot();
             this.updateTrackFill(outerRadiusSlider, 'outer-radius-track-fill');
+            requestAnimationFrame(() => {
+                updateScreenshot();
+            });
         });
         
         // Handle inner radius slider
         innerRadiusSlider.addEventListener('input', (e) => {
             currentInnerRadius = parseInt(e.target.value);
             innerRadiusValue.textContent = `${currentInnerRadius}px`;
-            updateScreenshot();
             this.updateTrackFill(innerRadiusSlider, 'inner-radius-track-fill');
+            requestAnimationFrame(() => {
+                updateScreenshot();
+            });
         });
     }
     
@@ -507,44 +522,47 @@ class GlocoSelector {
             // Get device pixel ratio for high-quality regeneration
             const pixelRatio = window.devicePixelRatio || 1;
             
-            // Create canvas for regeneration with high-quality settings
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            
-            // Enable high-quality rendering
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = 'high';
-            
-            // Calculate final dimensions using device pixel ratio
-            const cssWidth = croppedWidth + (padding * 2);
-            const cssHeight = croppedHeight + (padding * 2);
-            const finalWidth = Math.round(cssWidth * pixelRatio);
-            const finalHeight = Math.round(cssHeight * pixelRatio);
-            
-            canvas.width = finalWidth;
-            canvas.height = finalHeight;
-            
-            // Set CSS size for proper display
-            canvas.style.width = cssWidth + 'px';
-            canvas.style.height = cssHeight + 'px';
-            
-            // Scale context for device pixel ratio
-            ctx.scale(pixelRatio, pixelRatio);
-            
-            // Apply outer radius to entire canvas if specified
-            if (outerRadius > 0) {
-                ctx.save();
-                ctx.beginPath();
-                ctx.roundRect(0, 0, cssWidth, cssHeight, outerRadius);
-                ctx.clip();
-            }
-            
-            // Fill background with color
-            ctx.fillStyle = color;
-            ctx.fillRect(0, 0, cssWidth, cssHeight);
-            
-            // Load and draw the cropped image
             return new Promise((resolve) => {
+                // Create canvas for regeneration with high-quality settings
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Enable high-quality rendering
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                
+                // Calculate final dimensions using device pixel ratio
+                const cssWidth = croppedWidth + (padding * 2);
+                const cssHeight = croppedHeight + (padding * 2);
+                const finalWidth = Math.round(cssWidth * pixelRatio);
+                const finalHeight = Math.round(cssHeight * pixelRatio);
+                
+                canvas.width = finalWidth;
+                canvas.height = finalHeight;
+                
+                // Set CSS size for proper display
+                canvas.style.width = cssWidth + 'px';
+                canvas.style.height = cssHeight + 'px';
+                
+                // Scale context for device pixel ratio
+                ctx.scale(pixelRatio, pixelRatio);
+
+                // Apply outer radius to entire canvas if specified
+                const cssWidthFinal = cssWidth;
+                const cssHeightFinal = cssHeight;
+                
+                if (outerRadius > 0) {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.roundRect(0, 0, cssWidthFinal, cssHeightFinal, outerRadius);
+                    ctx.clip();
+                }
+                
+                // Fill background with color
+                ctx.fillStyle = color;
+                ctx.fillRect(0, 0, cssWidthFinal, cssHeightFinal);
+                
+                // Load and draw the cropped image immediately
                 const img = new Image();
                 img.onload = () => {
                     // Save context state for inner radius
@@ -565,7 +583,7 @@ class GlocoSelector {
                     // Draw the image at full quality
                     ctx.drawImage(img, x, y, width, height);
                     
-                    // Restore context state for inner radius
+                    // Restore context state
                     ctx.restore();
                     
                     // Restore outer radius clipping if it was applied
@@ -573,11 +591,11 @@ class GlocoSelector {
                         ctx.restore();
                     }
                     
-                    // Convert to blob and create URL
+                    // Convert to blob and create URL immediately
                     canvas.toBlob((blob) => {
                         const newImageUrl = URL.createObjectURL(blob);
                         resolve(newImageUrl);
-                    }, 'image/png');
+                    }, 'image/png', 0.95); // Slightly reduce quality for speed
                 };
                 img.src = imageUrl;
             });
