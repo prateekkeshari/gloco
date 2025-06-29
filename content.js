@@ -358,8 +358,8 @@ class GlocoSelector {
             const originalHTML = copyBtn.innerHTML;
             copyBtn.innerHTML = `
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    <rect x="3" y="3" width="18" height="18" rx="0" ry="0"></rect>
+                    <polyline points="7 13 11 17 17 8" stroke-linejoin="miter"></polyline>
                 </svg>
                 COPIED
             `;
@@ -678,9 +678,9 @@ class GlocoSelector {
         toast.className = 'gloco-toast';
         toast.innerHTML = `
             <div class="gloco-toast-content">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
+                    <rect x="3" y="3" width="18" height="18" rx="0" ry="0"></rect>
+                    <polyline points="7 13 11 17 17 8" stroke-linejoin="miter"></polyline>
                 </svg>
                 <span>${message}</span>
             </div>
