@@ -32,13 +32,19 @@ chrome.action.onClicked.addListener(async (tab) => {
         // Inject CSS first
         await chrome.scripting.insertCSS({
             target: { tabId: tab.id },
-            files: ['content.css']
+            files: ["css/base.css", "css/editor.css"]
         });
 
         // Then inject JavaScript
         await chrome.scripting.executeScript({
             target: { tabId: tab.id },
-            files: ['content.js']
+            files: [
+                "js/gloco-selector.js",
+                "js/gloco-helpers.js",
+                "js/gloco-image.js",
+                "js/gloco-editor.js",
+                "js/content.js"
+            ]
         });
 
         // Wait a moment for the script to initialize
