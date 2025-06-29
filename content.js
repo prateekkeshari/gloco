@@ -182,10 +182,12 @@ class GlocoSelector {
             const screenshotData = await this.captureTabScreenshot();
             
             // Generate final screenshot with current settings (including corner radius)
-            const finalImageUrl = await this.generateFinalScreenshot(screenshotData, { x, y, width, height });
+            // This now returns an object with the final composite image AND the cropped-only image
+            const screenshotResult = await this.generateFinalScreenshot(screenshotData, { x, y, width, height });
             
-            if (finalImageUrl) {
-                this.showScreenshotModal(finalImageUrl, width, height);
+            if (screenshotResult && screenshotResult.finalImageUrl) {
+                // Pass the entire result object to the modal
+                this.showScreenshotModal(screenshotResult, width, height);
             } else {
                 throw new Error("Failed to generate final screenshot");
             }
@@ -214,14 +216,9 @@ class GlocoSelector {
         });
     }
     
-    showScreenshotModal(imageUrl, width, height) {
-        // Store original captured data for regeneration
-        this.originalImageData = {
-            imageUrl,
-            width,
-            height,
-            originalScreenshotData: null
-        };
+    showScreenshotModal(screenshotResult, width, height) {
+        // Deconstruct the screenshot data
+        const { finalImageUrl, croppedImageUrl } = screenshotResult;
         
         const modal = document.createElement('div');
         modal.className = 'gloco-modal';
@@ -229,7 +226,9 @@ class GlocoSelector {
         modal.innerHTML = `
             <div class="gloco-modal-content">
                 <div class="gloco-screenshot-container">
-                    <img src="${imageUrl}" alt="Screenshot" class="gloco-screenshot" />
+                    <div id="gloco-preview-background">
+                        <img src="${croppedImageUrl}" alt="Screenshot" class="gloco-screenshot" />
+                    </div>
                     <button class="gloco-close-btn">×</button>
                 </div>
             </div>
@@ -304,7 +303,7 @@ class GlocoSelector {
         document.body.appendChild(controlPanel);
         
         // Size the modal to fit the screenshot
-        this.resizeModalToFitScreenshot(modal, imageUrl);
+        this.resizeModalToFitScreenshot(modal, finalImageUrl, width, height);
         
         // Load current settings
         chrome.storage.local.get('gloco_settings', (data) => {
@@ -339,8 +338,8 @@ class GlocoSelector {
             // Set active swatch
             this.setActiveSwatch(unifiedControls, settings.color);
             
-                                // Set up real-time editing with high quality rendering
-                    this.setupModalEditing(modal, unifiedControls, colorPicker, true);
+            // Set up real-time editing with CSS for performance
+            this.setupModalEditing(modal, unifiedControls, colorPicker, settings);
         });
         
         // Event listeners for main actions
@@ -348,12 +347,12 @@ class GlocoSelector {
         const downloadBtn = controlPanel.querySelector('#downloadBtn');
         const copyBtn = controlPanel.querySelector('#copyBtn');
         
-        closeBtn.addEventListener('click', () => this.closeModal(modal, imageUrl, controlPanel));
-        downloadBtn.addEventListener('click', () => {
-            this.downloadCurrentImage(modal);
+        closeBtn.addEventListener('click', () => this.closeModal(modal, finalImageUrl, croppedImageUrl, controlPanel));
+        downloadBtn.addEventListener('click', async () => {
+            await this.downloadCurrentImage(modal);
             this.showToast('Screenshot downloaded');
         });
-        copyBtn.addEventListener('click', () => {
+        copyBtn.addEventListener('click', async () => {
             // Change button text and disable temporarily
             const originalHTML = copyBtn.innerHTML;
             copyBtn.innerHTML = `
@@ -366,7 +365,7 @@ class GlocoSelector {
             copyBtn.disabled = true;
             copyBtn.style.opacity = '0.8';
             
-            this.copyCurrentImageToClipboard(modal);
+            await this.copyCurrentImageToClipboard(modal);
             this.showToast('Copied to clipboard');
             
             // Revert button after 2 seconds
@@ -379,13 +378,13 @@ class GlocoSelector {
         
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
-                this.closeModal(modal, imageUrl, controlPanel);
+                this.closeModal(modal, finalImageUrl, croppedImageUrl, controlPanel);
             }
         });
         
         const escapeHandler = (e) => {
             if (e.key === 'Escape') {
-                this.closeModal(modal, imageUrl, controlPanel);
+                this.closeModal(modal, finalImageUrl, croppedImageUrl, controlPanel);
                 document.removeEventListener('keydown', escapeHandler);
             }
         };
@@ -407,111 +406,74 @@ class GlocoSelector {
         }
     }
     
-    setupModalEditing(modal, unifiedControls, colorPicker, highQuality = false) {
+    setupModalEditing(modal, unifiedControls, colorPicker, initialSettings) {
         const paddingSlider = unifiedControls.querySelector('#modal-padding-slider');
         const paddingValue = unifiedControls.querySelector('#modal-padding-value');
         const outerRadiusSlider = unifiedControls.querySelector('#modal-outer-radius-slider');
         const outerRadiusValue = unifiedControls.querySelector('#modal-outer-radius-value');
         const innerRadiusSlider = unifiedControls.querySelector('#modal-inner-radius-slider');
         const innerRadiusValue = unifiedControls.querySelector('#modal-inner-radius-value');
+        const previewBackground = modal.querySelector('#gloco-preview-background');
         const screenshotImg = modal.querySelector('.gloco-screenshot');
-        
-        // Get initial values
-        let currentColor = colorPicker.value;
-        let currentPadding = parseInt(paddingSlider.value);
-        let currentOuterRadius = parseInt(outerRadiusSlider.value);
-        let currentInnerRadius = parseInt(innerRadiusSlider.value);
-        
-        let updateTimeout;
-        
-        const updateScreenshot = async (color = currentColor) => {
-            clearTimeout(updateTimeout);
-            
-            // Immediate visual feedback - show loading state
-            screenshotImg.style.opacity = '0.6';
-            screenshotImg.style.transition = 'opacity 0.1s ease';
-            
-            // Use shorter delay for high quality previews
-            const delayTime = highQuality ? 20 : 50;
-            
-            updateTimeout = setTimeout(async () => {
-                // Regenerate the image with new settings and higher quality
-                const newImageUrl = await this.regenerateScreenshot(
-                    color, 
-                    currentPadding, 
-                    currentOuterRadius, 
-                    currentInnerRadius,
-                    highQuality
-                );
-                
-                if (newImageUrl) {
-                    // Clean up old image URL
-                    if (screenshotImg.src.startsWith('blob:')) {
-                        URL.revokeObjectURL(screenshotImg.src);
-                    }
-                    screenshotImg.src = newImageUrl;
-                    
-                    // Restore opacity and resize modal
-                    screenshotImg.style.opacity = '1';
-                    screenshotImg.style.transition = 'opacity 0.2s ease';
-                    this.resizeModalToFitScreenshot(modal, newImageUrl);
-                }
-                
-                // Save settings
-                chrome.storage.local.set({
-                    gloco_settings: {
-                        color: color,
-                        padding: currentPadding,
-                        outerRadius: currentOuterRadius,
-                        innerRadius: currentInnerRadius
-                    }
-                });
-            }, delayTime);
+
+        let currentSettings = { ...initialSettings };
+
+        // Function to apply styles using CSS for instant feedback
+        const applyStyles = () => {
+            previewBackground.style.backgroundColor = currentSettings.color;
+            previewBackground.style.borderRadius = `${currentSettings.outerRadius}px`;
+            previewBackground.style.padding = `${currentSettings.padding}px`;
+            screenshotImg.style.borderRadius = `${currentSettings.innerRadius}px`;
         };
+
+        // Function to save settings with a debounce
+        const debouncedSave = (() => {
+            let timeout;
+            return () => {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    chrome.storage.local.set({ gloco_settings: currentSettings });
+                }, 300);
+            };
+        })();
+
+        // Initial application of styles
+        applyStyles();
         
         // Color swatch selection
         const colorSwatches = unifiedControls.querySelectorAll('.color-swatch');
         colorSwatches.forEach(swatch => {
             swatch.addEventListener('click', () => {
                 const color = swatch.getAttribute('data-color');
-                currentColor = color;
-                colorPicker.value = color;
-                
-                // Update active swatch immediately
+                currentSettings.color = color;
                 this.setActiveSwatch(unifiedControls, color);
-                
-                // Update screenshot with immediate feedback
-                requestAnimationFrame(() => {
-                    updateScreenshot(color);
-                });
+                applyStyles();
+                debouncedSave();
             });
         });
         
         // Handle padding slider
         paddingSlider.addEventListener('input', (e) => {
-            currentPadding = parseInt(e.target.value);
-            paddingValue.textContent = `${currentPadding}px`;
-            requestAnimationFrame(() => {
-                updateScreenshot();
-            });
+            currentSettings.padding = parseInt(e.target.value, 10);
+            paddingValue.textContent = `${currentSettings.padding}px`;
+            applyStyles();
+            debouncedSave();
         });
         
         // Handle outer radius slider
         outerRadiusSlider.addEventListener('input', (e) => {
-            currentOuterRadius = parseInt(e.target.value);
-            outerRadiusValue.textContent = `${currentOuterRadius}px`;
-            requestAnimationFrame(() => {
-                updateScreenshot();
-            });
+            currentSettings.outerRadius = parseInt(e.target.value, 10);
+            outerRadiusValue.textContent = `${currentSettings.outerRadius}px`;
+            applyStyles();
+            debouncedSave();
         });
         
         // Handle inner radius slider
         innerRadiusSlider.addEventListener('input', (e) => {
-            currentInnerRadius = parseInt(e.target.value);
-            innerRadiusValue.textContent = `${currentInnerRadius}px`;
-            requestAnimationFrame(() => {
-                updateScreenshot();
-            });
+            currentSettings.innerRadius = parseInt(e.target.value, 10);
+            innerRadiusValue.textContent = `${currentSettings.innerRadius}px`;
+            applyStyles();
+            debouncedSave();
         });
     }
     
@@ -608,20 +570,41 @@ class GlocoSelector {
         }
     }
     
-    downloadCurrentImage(modal) {
-        const screenshotImg = modal.querySelector('.gloco-screenshot');
+    async downloadCurrentImage(modal) {
+        const settings = await chrome.storage.local.get('gloco_settings').then(res => res.gloco_settings);
+        const finalImageUrl = await this.regenerateScreenshot(
+            settings.color,
+            settings.padding,
+            settings.outerRadius,
+            settings.innerRadius,
+            true // Always use high quality for export
+        );
+
+        if (!finalImageUrl) return;
+
         const link = document.createElement('a');
-        link.href = screenshotImg.src;
+        link.href = finalImageUrl;
         link.download = `gloco-screenshot-${Date.now()}.png`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        URL.revokeObjectURL(finalImageUrl);
     }
     
     async copyCurrentImageToClipboard(modal) {
         try {
-            const screenshotImg = modal.querySelector('.gloco-screenshot');
-            const response = await fetch(screenshotImg.src);
+            const settings = await chrome.storage.local.get('gloco_settings').then(res => res.gloco_settings);
+            const finalImageUrl = await this.regenerateScreenshot(
+                settings.color,
+                settings.padding,
+                settings.outerRadius,
+                settings.innerRadius,
+                true // Always use high quality for export
+            );
+
+            if (!finalImageUrl) throw new Error("Could not generate image for copying");
+
+            const response = await fetch(finalImageUrl);
             const blob = await response.blob();
             
             await navigator.clipboard.write([
@@ -629,7 +612,7 @@ class GlocoSelector {
                     'image/png': blob
                 })
             ]);
-            
+            URL.revokeObjectURL(finalImageUrl);
             this.showToast('Screenshot copied to clipboard!');
         } catch (error) {
             console.error('Failed to copy to clipboard:', error);
@@ -702,7 +685,7 @@ class GlocoSelector {
         }, 3000);
     }
     
-    closeModal(modal, imageUrl, controlPanel) {
+    closeModal(modal, finalImageUrl, croppedImageUrl, controlPanel) {
         modal.style.opacity = '0';
         if (controlPanel) {
             controlPanel.style.opacity = '0';
@@ -714,7 +697,9 @@ class GlocoSelector {
             if (controlPanel && controlPanel.parentNode) {
                 document.body.removeChild(controlPanel);
             }
-            URL.revokeObjectURL(imageUrl);
+            // Revoke both URLs
+            URL.revokeObjectURL(finalImageUrl);
+            URL.revokeObjectURL(croppedImageUrl);
         }, 300);
     }
     
@@ -888,11 +873,11 @@ class GlocoSelector {
                             // Store data for regeneration
                             this.lastCapturedData = {
                                 imageUrl: croppedImageUrl,
-                                croppedWidth,
-                                croppedHeight
+                                croppedWidth: width,
+                                croppedHeight: height
                             };
                             
-                            resolve(finalImageUrl);
+                            resolve({ finalImageUrl, croppedImageUrl });
                         }, 'image/png', 1.0);
                     };
                     croppedImg.src = croppedImageUrl;
@@ -910,7 +895,8 @@ class GlocoSelector {
         trackFill.style.width = trackFillWidth + 'px';
     }
 
-    resizeModalToFitScreenshot(modal, imageUrl) {
+    resizeModalToFitScreenshot(modal, imageUrl, imageWidth, imageHeight) {
+        // Now we use the base image width/height for calculations if available
         const img = new Image();
         img.onload = () => {
             const modalContent = modal.querySelector('.gloco-modal-content');
@@ -924,15 +910,16 @@ class GlocoSelector {
             const availableHeight = maxHeight - actionsHeight;
             
             // Calculate scaling factor to fit within bounds
+            // Use the dimensions of the generated composite image for scaling
             let scaleX = maxWidth / img.width;
             let scaleY = availableHeight / img.height;
             let scale = Math.min(scaleX, scaleY, 1); // Don't scale up, only down
             
-            // Calculate final dimensions
-            const finalImageWidth = Math.floor(img.width * scale);
-            const finalImageHeight = Math.floor(img.height * scale);
-            const finalModalWidth = finalImageWidth;
-            const finalModalHeight = finalImageHeight + actionsHeight;
+            // Calculate final dimensions for the container
+            const finalContainerWidth = Math.floor(img.width * scale);
+            const finalContainerHeight = Math.floor(img.height * scale);
+            const finalModalWidth = finalContainerWidth;
+            const finalModalHeight = finalContainerHeight + actionsHeight;
             
             // Apply the calculated dimensions
             modalContent.style.width = finalModalWidth + 'px';
@@ -940,12 +927,11 @@ class GlocoSelector {
             modalContent.style.maxWidth = 'none'; // Remove conflicting max constraints
             modalContent.style.maxHeight = 'none';
             
-            // Update the screenshot image size to match
-            const screenshotImg = modalContent.querySelector('.gloco-screenshot');
-            if (screenshotImg) {
-                screenshotImg.style.width = finalImageWidth + 'px';
-                screenshotImg.style.height = finalImageHeight + 'px';
-                screenshotImg.style.objectFit = 'contain';
+            // The preview background takes up the full space
+            const previewBg = modalContent.querySelector('#gloco-preview-background');
+            if (previewBg) {
+                previewBg.style.width = finalContainerWidth + 'px';
+                previewBg.style.height = finalContainerHeight + 'px';
             }
         };
         img.src = imageUrl;
