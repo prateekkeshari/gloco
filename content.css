@@ -37,7 +37,9 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.85);
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -45,6 +47,7 @@
     font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
     padding: 20px;
     box-sizing: border-box;
+    transition: background 0.3s ease, backdrop-filter 0.3s ease;
 }
 
 .gloco-modal-content {
@@ -65,26 +68,27 @@
     position: absolute;
     top: 16px;
     right: 16px;
-    background: rgba(0, 0, 0, 0.75);
-    border: none;
-    border-radius: 0;
+    background: rgba(20, 20, 20, 0.6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
     color: white;
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
+    font-size: 20px;
     cursor: pointer;
     z-index: 10;
-    opacity: 0.85;
     transition: all 0.2s ease;
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 .gloco-close-btn:hover {
-    opacity: 1;
-    background: rgba(0, 0, 0, 0.9);
+    background: rgba(0, 0, 0, 0.8);
+    transform: scale(1.1);
 }
 
 .gloco-screenshot-container {
@@ -97,7 +101,7 @@
     transition: all 0.3s ease;
     flex: 1;
     overflow: visible;
-    max-height: calc(100vh - 140px); /* Account for padding and actions */
+    max-height: calc(100vh - 140px);
     position: relative;
 }
 
@@ -539,11 +543,13 @@
     display: flex;
     align-items: center;
     gap: 0;
-    background: #f8f8f8;
-    border: 1px solid #c0c0c0;
-    border-radius: 0;
-    padding: 16px 20px;
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background: rgba(35, 35, 35, 0.75);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 16px 24px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     width: fit-content;
     min-width: 720px;
     max-width: 900px;
@@ -551,7 +557,8 @@
     scrollbar-width: none;
     -ms-overflow-style: none;
     flex-shrink: 0;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .gloco-unified-controls::-webkit-scrollbar {
@@ -567,20 +574,20 @@
 
 .control-divider {
     width: 1px;
-    height: 32px;
-    background: #c0c0c0;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.15);
     margin: 0 24px;
     flex-shrink: 0;
 }
 
 .control-label {
-    font-size: 10px;
-    font-weight: 400;
-    color: #666666;
-    margin-bottom: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 8px;
     white-space: nowrap;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.8px;
 }
 
 /* Colors Group */
@@ -592,39 +599,35 @@
 
 .colors-group .color-swatches {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     align-items: center;
 }
 
 .gloco-unified-controls .color-swatch {
-    width: 20px;
-    height: 20px;
-    border-radius: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
     cursor: pointer;
-    border: 1px solid #999999;
+    border: 1px solid transparent;
     position: relative;
     overflow: hidden;
     flex-shrink: 0;
+    transition: all 0.2s ease;
 }
 
 .gloco-unified-controls .color-swatch:hover {
-    border-color: #666666;
+    transform: scale(1.1);
+    border-color: rgba(255, 255, 255, 0.5);
 }
 
 .gloco-unified-controls .color-swatch.active {
-    border-color: #000000;
+    border-color: #ffffff;
     border-width: 2px;
+    transform: scale(1.1);
 }
 
 .gloco-unified-controls .color-swatch.active::after {
-    content: '';
-    position: absolute;
-    top: 2px;
-    right: 2px;
-    width: 6px;
-    height: 6px;
-    background: #000;
-    border-radius: 50%;
+    content: none;
 }
 
 .gloco-unified-controls .color-swatch[data-color="#ffffff"].active::after {
@@ -643,7 +646,7 @@
     flex-direction: column;
     align-items: center;
     gap: 8px;
-    min-width: 64px;
+    min-width: 100px;
 }
 
 .slider-container {
@@ -654,45 +657,49 @@
 }
 
 .unified-slider {
-    width: 80px;
-    height: 2px;
-    border-radius: 0;
-    background: #cccccc;
+    width: 100px;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.2);
     outline: none;
     -webkit-appearance: none;
     cursor: pointer;
+    transition: background 0.2s ease;
 }
 
 .unified-slider:hover {
-    background: #999999;
+    background: rgba(255, 255, 255, 0.3);
 }
 
 .unified-slider::-webkit-slider-thumb {
     appearance: none;
-    width: 12px;
-    height: 12px;
-    border-radius: 0;
-    background: #000000;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #ffffff;
     cursor: pointer;
     border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease;
 }
 
 .unified-slider::-webkit-slider-thumb:hover {
-    background: #000000;
+    transform: scale(1.1);
 }
 
 .unified-slider::-webkit-slider-thumb:active {
-    background: #000;
+    transform: scale(1);
+    background: #f0f0f0;
 }
 
 .unified-slider::-moz-range-thumb {
-    width: 12px;
-    height: 12px;
+    width: 16px;
+    height: 16px;
     border: none;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.9);
+    background: #ffffff;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -703,16 +710,16 @@
 }
 
 .control-value {
-    font-size: 11px;
-    font-weight: 400;
-    color: #333333;
-    background: #f5f5f5;
-    padding: 2px 6px;
-    border-radius: 0;
-    min-width: 36px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #ffffff;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 4px 8px;
+    border-radius: 6px;
+    min-width: 40px;
     text-align: center;
     white-space: nowrap;
-    border: 1px solid #d0d0d0;
+    border: 1px solid transparent;
 }
 
 /* Actions Group */
@@ -724,48 +731,53 @@
 }
 
 .unified-action-btn {
-    padding: 10px 16px;
-    border: 1px solid #888888;
-    border-radius: 0;
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    font-size: 11px;
-    font-weight: 400;
+    padding: 12px 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 12px;
+    font-weight: 500;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
     white-space: nowrap;
     flex-shrink: 0;
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    min-width: 100px;
+    min-width: 110px;
+    backdrop-filter: blur(10px);
 }
 
 .unified-action-btn.primary {
-    background: #000000;
-    color: #ffffff;
-    border-color: #000000;
+    background: rgba(255, 255, 255, 0.9);
+    color: #111111;
+    border-color: transparent;
 }
 
 .unified-action-btn.primary:hover {
-    background: #333333;
+    background: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .unified-action-btn.secondary {
-    background: #f8f8f8;
-    color: #333333;
-    border-color: #888888;
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 .unified-action-btn.secondary:hover {
-    background: #f0f0f0;
-    border-color: #555555;
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
 }
 
 .unified-action-btn:active {
     opacity: 0.9;
+    transform: translateY(0);
 }
 
 .unified-action-btn svg {
@@ -798,6 +810,7 @@
         gap: 0;
         min-width: 540px;
         max-width: 95vw;
+        border-radius: 12px;
     }
     
     .control-divider {
@@ -838,6 +851,7 @@
     .gloco-unified-controls {
         min-width: 480px;
         padding: 10px 14px;
+        border-radius: 10px;
     }
     
     .control-divider {
