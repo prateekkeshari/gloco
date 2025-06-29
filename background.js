@@ -58,10 +58,13 @@ chrome.action.onClicked.addListener(async (tab) => {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'captureTab') {
-        // Capture the visible tab
+        // Get quality setting from message or default to highest
+        const quality = message.quality === 'highest' ? 100 : 100;
+        
+        // Capture the visible tab with maximum quality
         chrome.tabs.captureVisibleTab(
             null,
-            { format: 'png', quality: 100 },
+            { format: 'png', quality: quality },
             (dataUrl) => {
                 if (chrome.runtime.lastError) {
                     console.error('Capture error:', chrome.runtime.lastError);

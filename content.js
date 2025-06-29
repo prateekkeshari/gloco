@@ -200,7 +200,11 @@ class GlocoSelector {
     
     async captureTabScreenshot() {
         return new Promise((resolve, reject) => {
-            chrome.runtime.sendMessage({ action: 'captureTab' }, (response) => {
+            // Request highest quality screenshot from background script
+            chrome.runtime.sendMessage({ 
+                action: 'captureTab',
+                quality: 'highest'  // Signal to capture at maximum resolution
+            }, (response) => {
                 if (response && response.dataUrl) {
                     resolve(response.dataUrl);
                 } else {
@@ -335,8 +339,8 @@ class GlocoSelector {
             // Set active swatch
             this.setActiveSwatch(unifiedControls, settings.color);
             
-            // Set up real-time editing
-            this.setupModalEditing(modal, unifiedControls, colorPicker);
+                                // Set up real-time editing with high quality rendering
+                    this.setupModalEditing(modal, unifiedControls, colorPicker, true);
         });
         
         // Event listeners for main actions
@@ -403,7 +407,7 @@ class GlocoSelector {
         }
     }
     
-    setupModalEditing(modal, unifiedControls, colorPicker) {
+    setupModalEditing(modal, unifiedControls, colorPicker, highQuality = false) {
         const paddingSlider = unifiedControls.querySelector('#modal-padding-slider');
         const paddingValue = unifiedControls.querySelector('#modal-padding-value');
         const outerRadiusSlider = unifiedControls.querySelector('#modal-outer-radius-slider');
@@ -427,9 +431,19 @@ class GlocoSelector {
             screenshotImg.style.opacity = '0.6';
             screenshotImg.style.transition = 'opacity 0.1s ease';
             
+            // Use shorter delay for high quality previews
+            const delayTime = highQuality ? 20 : 50;
+            
             updateTimeout = setTimeout(async () => {
-                // Regenerate the image with new settings
-                const newImageUrl = await this.regenerateScreenshot(color, currentPadding, currentOuterRadius, currentInnerRadius);
+                // Regenerate the image with new settings and higher quality
+                const newImageUrl = await this.regenerateScreenshot(
+                    color, 
+                    currentPadding, 
+                    currentOuterRadius, 
+                    currentInnerRadius,
+                    highQuality
+                );
+                
                 if (newImageUrl) {
                     // Clean up old image URL
                     if (screenshotImg.src.startsWith('blob:')) {
@@ -452,7 +466,7 @@ class GlocoSelector {
                         innerRadius: currentInnerRadius
                     }
                 });
-            }, 50); // Reduced from 150ms to 50ms
+            }, delayTime);
         };
         
         // Color swatch selection
@@ -501,14 +515,15 @@ class GlocoSelector {
         });
     }
     
-    async regenerateScreenshot(color, padding, outerRadius, innerRadius) {
+    async regenerateScreenshot(color, padding, outerRadius, innerRadius, highQuality = false) {
         try {
             if (!this.lastCapturedData) return null;
             
             const { imageUrl, croppedWidth, croppedHeight } = this.lastCapturedData;
             
             // Get device pixel ratio for high-quality regeneration
-            const pixelRatio = window.devicePixelRatio || 1;
+            // Force at least 2x pixel ratio for crisp results on all devices
+            const pixelRatio = Math.max(window.devicePixelRatio || 1, highQuality ? 2.5 : 2);
             
             return new Promise((resolve) => {
                 // Create canvas for regeneration with high-quality settings
@@ -579,11 +594,11 @@ class GlocoSelector {
                         ctx.restore();
                     }
                     
-                    // Convert to blob and create URL immediately
+                    // Convert to blob and create URL with maximum quality
                     canvas.toBlob((blob) => {
                         const newImageUrl = URL.createObjectURL(blob);
                         resolve(newImageUrl);
-                    }, 'image/png', 0.95); // Slightly reduce quality for speed
+                    }, 'image/png', 1.0); // Use maximum quality for crisp HD output
                 };
                 img.src = imageUrl;
             });
@@ -740,17 +755,24 @@ class GlocoSelector {
         
         return new Promise((resolve) => {
             const img = new Image();
-            img.onload = () => {
+            // Use image decode API for better quality and performance
+            img.decode = img.decode || function() { return Promise.resolve(); };
+            img.onload = async () => {
+                // Wait for the image to be fully decoded for best quality
+                await img.decode().catch(() => {});
+                
                 // Get device pixel ratio for high-quality capture
-                const pixelRatio = window.devicePixelRatio || 1;
+                const pixelRatio = Math.max(window.devicePixelRatio || 1, 2);
                 
                 // Create canvas for cropping with high-quality settings
                 const cropCanvas = document.createElement('canvas');
                 const cropCtx = cropCanvas.getContext('2d');
                 
-                // Enable high-quality rendering
+                // Enable maximum-quality rendering
                 cropCtx.imageSmoothingEnabled = true;
                 cropCtx.imageSmoothingQuality = 'high';
+                cropCtx.globalCompositeOperation = 'source-over';
+                cropCtx.imageSmoothingEnabled = true;
                 
                 // Calculate proper scale factors accounting for device pixel ratio
                 const scaleX = img.width / window.innerWidth;
@@ -797,9 +819,11 @@ class GlocoSelector {
                     const finalCanvas = document.createElement('canvas');
                     const finalCtx = finalCanvas.getContext('2d');
                     
-                    // Enable high-quality rendering for final canvas
+                    // Enable maximum-quality rendering for final canvas
                     finalCtx.imageSmoothingEnabled = true;
                     finalCtx.imageSmoothingQuality = 'high';
+                    finalCtx.globalCompositeOperation = 'source-over';
+                    finalCtx.imageSmoothingEnabled = true;
                     
                     // Use high-resolution dimensions for final canvas
                     const finalWidth = Math.round((width + (settings.padding * 2)) * pixelRatio);
@@ -857,7 +881,7 @@ class GlocoSelector {
                             finalCtx.restore();
                         }
                         
-                        // Convert to blob and create URL
+                        // Convert to blob and create URL with maximum quality
                         finalCanvas.toBlob((blob) => {
                             const finalImageUrl = URL.createObjectURL(blob);
                             
@@ -869,7 +893,7 @@ class GlocoSelector {
                             };
                             
                             resolve(finalImageUrl);
-                        }, 'image/png');
+                        }, 'image/png', 1.0);
                     };
                     croppedImg.src = croppedImageUrl;
                 });
