@@ -228,82 +228,76 @@ class GlocoSelector {
                 <div class="gloco-screenshot-container">
                     <img src="${imageUrl}" alt="Screenshot" class="gloco-screenshot" />
                 </div>
-                <div class="gloco-modal-actions">
-                    <button class="gloco-action-btn secondary" id="copyBtn">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                            <path d="m5,15 L5,5 A2,2 0 0,1 7,3 L17,3"></path>
-                        </svg>
-                        Copy
-                    </button>
-                    <button class="gloco-action-btn primary" id="downloadBtn">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="7,10 12,15 17,10"></polyline>
-                            <line x1="12" y1="15" x2="12" y2="3"></line>
-                        </svg>
-                        Download
-                    </button>
-                </div>
             </div>
         `;
         
-        // Create floating controls
-        const floatingControls = document.createElement('div');
-        floatingControls.className = 'gloco-floating-controls';
-        floatingControls.innerHTML = `
-            <div class="floating-panel">
-                <div class="panel-header">
-                    <span class="panel-title">Background</span>
+        // Create independent control panel
+        const controlPanel = document.createElement('div');
+        controlPanel.className = 'gloco-control-panel';
+        controlPanel.innerHTML = `
+            <div class="gloco-unified-controls">
+                <div class="control-group colors-group">
+                    <div class="control-label">Background</div>
+                    <div class="color-swatches">
+                        <div class="color-swatch active" data-color="#ff5533" style="background: #ff5533"></div>
+                        <div class="color-swatch" data-color="#FFD938" style="background: #FFD938"></div>
+                        <div class="color-swatch" data-color="#1A2B49" style="background: #1A2B49"></div>
+                        <div class="color-swatch" data-color="#81BEFF" style="background: #81BEFF"></div>
+                        <div class="color-swatch" data-color="#A1D55D" style="background: #A1D55D"></div>
+                        <div class="color-swatch" data-color="#F4CDD7" style="background: #F4CDD7"></div>
+                        <div class="color-swatch" data-color="#000000" style="background: #000000"></div>
+                        <div class="color-swatch" data-color="#ffffff" style="background: #ffffff"></div>
+                    </div>
                 </div>
-                <div class="color-swatches">
-                    <div class="color-swatch active" data-color="#ff5533" style="background: #ff5533"></div>
-                    <div class="color-swatch" data-color="#FFD938" style="background: #FFD938"></div>
-                    <div class="color-swatch" data-color="#1A2B49" style="background: #1A2B49"></div>
-                    <div class="color-swatch" data-color="#81BEFF" style="background: #81BEFF"></div>
-                    <div class="color-swatch" data-color="#A1D55D" style="background: #A1D55D"></div>
-                    <div class="color-swatch" data-color="#F4CDD7" style="background: #F4CDD7"></div>
-                    <div class="color-swatch" data-color="#000000" style="background: #000000"></div>
-                    <div class="color-swatch" data-color="#ffffff" style="background: #ffffff; border: 2px solid #e5e7eb;"></div>
+                
+                <div class="control-divider"></div>
+                
+                <div class="control-group adjustments-group">
+                    <div class="adjustment-control">
+                        <div class="control-label">Padding</div>
+                        <div class="slider-container">
+                            <input type="range" id="modal-padding-slider" min="0" max="100" step="1" value="30" class="unified-slider">
+                            <span class="control-value" id="modal-padding-value">30px</span>
+                        </div>
+                    </div>
+                    <div class="adjustment-control">
+                        <div class="control-label">Outer</div>
+                        <div class="slider-container">
+                            <input type="range" id="modal-outer-radius-slider" min="0" max="50" step="1" value="16" class="unified-slider">
+                            <span class="control-value" id="modal-outer-radius-value">16px</span>
+                        </div>
+                    </div>
+                    <div class="adjustment-control">
+                        <div class="control-label">Inner</div>
+                        <div class="slider-container">
+                            <input type="range" id="modal-inner-radius-slider" min="0" max="50" step="1" value="12" class="unified-slider">
+                            <span class="control-value" id="modal-inner-radius-value">12px</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             
-            <div class="floating-panel">
-                <div class="panel-header">
-                    <span class="panel-title">Padding</span>
-                    <span class="panel-value" id="modal-padding-value">30px</span>
-                </div>
-                <div class="slider-container">
-                    <input type="range" id="modal-padding-slider" min="0" max="100" step="1" value="30" class="floating-slider">
-                    <div class="slider-track-fill" id="padding-track-fill"></div>
-                </div>
-            </div>
-            
-            <div class="floating-panel">
-                <div class="panel-header">
-                    <span class="panel-title">Outer Radius</span>
-                    <span class="panel-value" id="modal-outer-radius-value">16px</span>
-                </div>
-                <div class="slider-container">
-                    <input type="range" id="modal-outer-radius-slider" min="0" max="50" step="1" value="16" class="floating-slider">
-                    <div class="slider-track-fill" id="outer-radius-track-fill"></div>
-                </div>
-            </div>
-            
-            <div class="floating-panel">
-                <div class="panel-header">
-                    <span class="panel-title">Inner Radius</span>
-                    <span class="panel-value" id="modal-inner-radius-value">12px</span>
-                </div>
-                <div class="slider-container">
-                    <input type="range" id="modal-inner-radius-slider" min="0" max="50" step="1" value="12" class="floating-slider">
-                    <div class="slider-track-fill" id="inner-radius-track-fill"></div>
-                </div>
+            <div class="gloco-action-buttons">
+                <button class="unified-action-btn secondary" id="copyBtn">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="m5,15 L5,5 A2,2 0 0,1 7,3 L17,3"></path>
+                    </svg>
+                    COPY
+                </button>
+                <button class="unified-action-btn primary" id="downloadBtn">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7,10 12,15 17,10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    DOWNLOAD
+                </button>
             </div>
         `;
         
         document.body.appendChild(modal);
-        document.body.appendChild(floatingControls);
+        document.body.appendChild(controlPanel);
         
         // Size the modal to fit the screenshot
         this.resizeModalToFitScreenshot(modal, imageUrl);
@@ -316,18 +310,20 @@ class GlocoSelector {
                 outerRadius: 16, 
                 innerRadius: 12 
             };
+            
+            const unifiedControls = controlPanel.querySelector('.gloco-unified-controls');
             const colorPicker = document.createElement('input');
             colorPicker.type = 'hidden';
             colorPicker.id = 'modal-color-picker';
             colorPicker.value = settings.color;
-            floatingControls.appendChild(colorPicker);
+            unifiedControls.appendChild(colorPicker);
             
-            const paddingSlider = floatingControls.querySelector('#modal-padding-slider');
-            const paddingValue = floatingControls.querySelector('#modal-padding-value');
-            const outerRadiusSlider = floatingControls.querySelector('#modal-outer-radius-slider');
-            const outerRadiusValue = floatingControls.querySelector('#modal-outer-radius-value');
-            const innerRadiusSlider = floatingControls.querySelector('#modal-inner-radius-slider');
-            const innerRadiusValue = floatingControls.querySelector('#modal-inner-radius-value');
+            const paddingSlider = unifiedControls.querySelector('#modal-padding-slider');
+            const paddingValue = unifiedControls.querySelector('#modal-padding-value');
+            const outerRadiusSlider = unifiedControls.querySelector('#modal-outer-radius-slider');
+            const outerRadiusValue = unifiedControls.querySelector('#modal-outer-radius-value');
+            const innerRadiusSlider = unifiedControls.querySelector('#modal-inner-radius-slider');
+            const innerRadiusValue = unifiedControls.querySelector('#modal-inner-radius-value');
             
             paddingSlider.value = settings.padding;
             paddingValue.textContent = settings.padding + 'px';
@@ -336,24 +332,19 @@ class GlocoSelector {
             innerRadiusSlider.value = settings.innerRadius || 12;
             innerRadiusValue.textContent = (settings.innerRadius || 12) + 'px';
             
-            // Initialize track fills
-            this.updateTrackFill(paddingSlider, 'padding-track-fill');
-            this.updateTrackFill(outerRadiusSlider, 'outer-radius-track-fill');
-            this.updateTrackFill(innerRadiusSlider, 'inner-radius-track-fill');
-            
             // Set active swatch
-            this.setActiveSwatch(floatingControls, settings.color);
+            this.setActiveSwatch(unifiedControls, settings.color);
             
             // Set up real-time editing
-            this.setupModalEditing(modal, floatingControls, colorPicker);
+            this.setupModalEditing(modal, unifiedControls, colorPicker);
         });
         
         // Event listeners for main actions
         const closeBtn = modal.querySelector('.gloco-close-btn');
-        const downloadBtn = modal.querySelector('#downloadBtn');
-        const copyBtn = modal.querySelector('#copyBtn');
+        const downloadBtn = controlPanel.querySelector('#downloadBtn');
+        const copyBtn = controlPanel.querySelector('#copyBtn');
         
-        closeBtn.addEventListener('click', () => this.closeModal(modal, imageUrl, floatingControls));
+        closeBtn.addEventListener('click', () => this.closeModal(modal, imageUrl, controlPanel));
         downloadBtn.addEventListener('click', () => {
             this.downloadCurrentImage(modal);
             this.showToast('Screenshot downloaded');
@@ -362,11 +353,11 @@ class GlocoSelector {
             // Change button text and disable temporarily
             const originalHTML = copyBtn.innerHTML;
             copyBtn.innerHTML = `
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                     <polyline points="22 4 12 14.01 9 11.01"></polyline>
                 </svg>
-                Copied
+                COPIED
             `;
             copyBtn.disabled = true;
             copyBtn.style.opacity = '0.8';
@@ -384,13 +375,13 @@ class GlocoSelector {
         
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
-                this.closeModal(modal, imageUrl, floatingControls);
+                this.closeModal(modal, imageUrl, controlPanel);
             }
         });
         
         const escapeHandler = (e) => {
             if (e.key === 'Escape') {
-                this.closeModal(modal, imageUrl, floatingControls);
+                this.closeModal(modal, imageUrl, controlPanel);
                 document.removeEventListener('keydown', escapeHandler);
             }
         };
@@ -412,13 +403,13 @@ class GlocoSelector {
         }
     }
     
-    setupModalEditing(modal, floatingControls, colorPicker) {
-        const paddingSlider = floatingControls.querySelector('#modal-padding-slider');
-        const paddingValue = floatingControls.querySelector('#modal-padding-value');
-        const outerRadiusSlider = floatingControls.querySelector('#modal-outer-radius-slider');
-        const outerRadiusValue = floatingControls.querySelector('#modal-outer-radius-value');
-        const innerRadiusSlider = floatingControls.querySelector('#modal-inner-radius-slider');
-        const innerRadiusValue = floatingControls.querySelector('#modal-inner-radius-value');
+    setupModalEditing(modal, unifiedControls, colorPicker) {
+        const paddingSlider = unifiedControls.querySelector('#modal-padding-slider');
+        const paddingValue = unifiedControls.querySelector('#modal-padding-value');
+        const outerRadiusSlider = unifiedControls.querySelector('#modal-outer-radius-slider');
+        const outerRadiusValue = unifiedControls.querySelector('#modal-outer-radius-value');
+        const innerRadiusSlider = unifiedControls.querySelector('#modal-inner-radius-slider');
+        const innerRadiusValue = unifiedControls.querySelector('#modal-inner-radius-value');
         const screenshotImg = modal.querySelector('.gloco-screenshot');
         
         // Get initial values
@@ -465,7 +456,7 @@ class GlocoSelector {
         };
         
         // Color swatch selection
-        const colorSwatches = floatingControls.querySelectorAll('.color-swatch');
+        const colorSwatches = unifiedControls.querySelectorAll('.color-swatch');
         colorSwatches.forEach(swatch => {
             swatch.addEventListener('click', () => {
                 const color = swatch.getAttribute('data-color');
@@ -473,7 +464,7 @@ class GlocoSelector {
                 colorPicker.value = color;
                 
                 // Update active swatch immediately
-                this.setActiveSwatch(floatingControls, color);
+                this.setActiveSwatch(unifiedControls, color);
                 
                 // Update screenshot with immediate feedback
                 requestAnimationFrame(() => {
@@ -486,7 +477,6 @@ class GlocoSelector {
         paddingSlider.addEventListener('input', (e) => {
             currentPadding = parseInt(e.target.value);
             paddingValue.textContent = `${currentPadding}px`;
-            this.updateTrackFill(paddingSlider, 'padding-track-fill');
             requestAnimationFrame(() => {
                 updateScreenshot();
             });
@@ -496,7 +486,6 @@ class GlocoSelector {
         outerRadiusSlider.addEventListener('input', (e) => {
             currentOuterRadius = parseInt(e.target.value);
             outerRadiusValue.textContent = `${currentOuterRadius}px`;
-            this.updateTrackFill(outerRadiusSlider, 'outer-radius-track-fill');
             requestAnimationFrame(() => {
                 updateScreenshot();
             });
@@ -506,7 +495,6 @@ class GlocoSelector {
         innerRadiusSlider.addEventListener('input', (e) => {
             currentInnerRadius = parseInt(e.target.value);
             innerRadiusValue.textContent = `${currentInnerRadius}px`;
-            this.updateTrackFill(innerRadiusSlider, 'inner-radius-track-fill');
             requestAnimationFrame(() => {
                 updateScreenshot();
             });
@@ -699,14 +687,17 @@ class GlocoSelector {
         }, 3000);
     }
     
-    closeModal(modal, imageUrl, floatingControls) {
+    closeModal(modal, imageUrl, controlPanel) {
         modal.style.opacity = '0';
+        if (controlPanel) {
+            controlPanel.style.opacity = '0';
+        }
         setTimeout(() => {
             if (modal.parentNode) {
                 document.body.removeChild(modal);
             }
-            if (floatingControls && floatingControls.parentNode) {
-                document.body.removeChild(floatingControls);
+            if (controlPanel && controlPanel.parentNode) {
+                document.body.removeChild(controlPanel);
             }
             URL.revokeObjectURL(imageUrl);
         }, 300);
