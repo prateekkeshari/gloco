@@ -224,176 +224,171 @@ class GlocoSelector {
         modal.className = 'gloco-modal';
         
         modal.innerHTML = `
-            <div class="gloco-modal-content">
-                <div class="gloco-screenshot-container">
+            <div class="gloco-editor">
+                <div class="gloco-preview-pane">
                     <div id="gloco-preview-background">
                         <img src="${croppedImageUrl}" alt="Screenshot" class="gloco-screenshot" />
                     </div>
-                    <button class="gloco-close-btn">×</button>
                 </div>
-            </div>
-        `;
-        
-        // Create independent control panel
-        const controlPanel = document.createElement('div');
-        controlPanel.className = 'gloco-control-panel';
-        controlPanel.innerHTML = `
-            <div class="gloco-unified-controls">
-                <div class="control-group colors-group">
-                    <div class="control-label">Background</div>
-                    <div class="color-swatches">
-                        <div class="color-swatch active" data-color="#ff5533" style="background: #ff5533"></div>
-                        <div class="color-swatch" data-color="#FFD938" style="background: #FFD938"></div>
-                        <div class="color-swatch" data-color="#1A2B49" style="background: #1A2B49"></div>
-                        <div class="color-swatch" data-color="#81BEFF" style="background: #81BEFF"></div>
-                        <div class="color-swatch" data-color="#A1D55D" style="background: #A1D55D"></div>
-                        <div class="color-swatch" data-color="#F4CDD7" style="background: #F4CDD7"></div>
-                        <div class="color-swatch" data-color="#000000" style="background: #000000"></div>
-                        <div class="color-swatch" data-color="#ffffff" style="background: #ffffff"></div>
-                    </div>
-                </div>
-                
-                <div class="control-divider"></div>
-                
-                <div class="control-group adjustments-group">
-                    <div class="adjustment-control">
-                        <div class="control-label">Padding</div>
-                        <div class="slider-container">
-                            <input type="range" id="modal-padding-slider" min="0" max="100" step="1" value="30" class="unified-slider">
-                            <span class="control-value" id="modal-padding-value">30px</span>
+                <div class="gloco-sidebar">
+                    <div class="gloco-sidebar-content">
+                        <div class="control-section">
+                            <div class="control-header">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                                <span>Background</span>
+                            </div>
+                            <div class="color-swatches">
+                                <div class="color-swatch" data-color="#FF5F57" style="background: #FF5F57"></div>
+                                <div class="color-swatch" data-color="#FEBC2E" style="background: #FEBC2E"></div>
+                                <div class="color-swatch" data-color="#282F37" style="background: #282F37"></div>
+                                <div class="color-swatch" data-color="#58ACF9" style="background: #58ACF9"></div>
+                                <div class="color-swatch active" data-color="#50C878" style="background: #50C878"></div>
+                                <div class="color-swatch" data-color="#FFC1CC" style="background: #FFC1CC"></div>
+                                <div class="color-swatch" data-color="#000000" style="background: #000000"></div>
+                                <div class="color-swatch" data-color="#ffffff" style="background: #ffffff"></div>
+                            </div>
+                        </div>
+
+                        <div class="control-divider"></div>
+
+                        <div class="control-section">
+                            <div class="control-header">
+                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+                                <span>Padding</span>
+                            </div>
+                            <div class="slider-control">
+                                <div class="slider-label-container">
+                                    <div class="slider-label">Padding</div>
+                                    <span class="slider-value" id="modal-padding-value">65px</span>
+                                </div>
+                                <input type="range" id="modal-padding-slider" min="0" max="150" step="1" value="65">
+                            </div>
+                        </div>
+                        
+                        <div class="control-divider"></div>
+
+                        <div class="control-section">
+                            <div class="control-header">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4" ry="4"></rect></svg>
+                                <span>Corner Radius</span>
+                            </div>
+                            <div class="slider-group">
+                                <div class="slider-control">
+                                    <div class="slider-label-container">
+                                        <div class="slider-label">Outer</div>
+                                        <span class="slider-value" id="modal-outer-radius-value">15px</span>
+                                    </div>
+                                    <input type="range" id="modal-outer-radius-slider" min="0" max="100" step="1" value="15">
+                                </div>
+                                <div class="slider-control">
+                                    <div class="slider-label-container">
+                                        <div class="slider-label">Inner</div>
+                                        <span class="slider-value" id="modal-inner-radius-value">15px</span>
+                                    </div>
+                                    <input type="range" id="modal-inner-radius-slider" min="0" max="100" step="1" value="15">
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="adjustment-control">
-                        <div class="control-label">Outer</div>
-                        <div class="slider-container">
-                            <input type="range" id="modal-outer-radius-slider" min="0" max="50" step="1" value="16" class="unified-slider">
-                            <span class="control-value" id="modal-outer-radius-value">16px</span>
-                        </div>
-                    </div>
-                    <div class="adjustment-control">
-                        <div class="control-label">Inner</div>
-                        <div class="slider-container">
-                            <input type="range" id="modal-inner-radius-slider" min="0" max="50" step="1" value="12" class="unified-slider">
-                            <span class="control-value" id="modal-inner-radius-value">12px</span>
-                        </div>
+
+                    <div class="sidebar-footer">
+                        <button class="sidebar-btn" id="copyBtn">Copy</button>
+                        <button class="sidebar-btn primary" id="downloadBtn">Download PNG</button>
                     </div>
                 </div>
             </div>
-            
-            <div class="gloco-action-buttons">
-                <button class="unified-action-btn secondary" id="copyBtn">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
-                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                        <path d="m5,15 L5,5 A2,2 0 0,1 7,3 L17,3"></path>
-                    </svg>
-                    COPY
-                </button>
-                <button class="unified-action-btn primary" id="downloadBtn">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7,10 12,15 17,10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg>
-                    DOWNLOAD
-                </button>
-            </div>
+            <button class="gloco-close-btn">×</button>
         `;
         
         document.body.appendChild(modal);
-        document.body.appendChild(controlPanel);
-        
-        // Size the modal to fit the screenshot
-        this.resizeModalToFitScreenshot(modal, finalImageUrl, width, height);
-        
-        // Load current settings
+
+        // We don't need to size the modal anymore, CSS will handle it.
+        // this.resizeModalToFitScreenshot(modal, finalImageUrl, width, height);
+
+        // The old control panel is gone.
+        const sidebar = modal.querySelector('.gloco-sidebar');
         chrome.storage.local.get('gloco_settings', (data) => {
             const settings = data.gloco_settings || { 
-                color: '#ff5533', 
-                padding: 30, 
-                outerRadius: 16, 
-                innerRadius: 12 
+                color: '#50C878', 
+                padding: 65, 
+                outerRadius: 15,
+                innerRadius: 15
             };
             
-            const unifiedControls = controlPanel.querySelector('.gloco-unified-controls');
+            // The color picker is now part of the sidebar
             const colorPicker = document.createElement('input');
             colorPicker.type = 'hidden';
             colorPicker.id = 'modal-color-picker';
             colorPicker.value = settings.color;
-            unifiedControls.appendChild(colorPicker);
+            sidebar.appendChild(colorPicker);
             
-            const paddingSlider = unifiedControls.querySelector('#modal-padding-slider');
-            const paddingValue = unifiedControls.querySelector('#modal-padding-value');
-            const outerRadiusSlider = unifiedControls.querySelector('#modal-outer-radius-slider');
-            const outerRadiusValue = unifiedControls.querySelector('#modal-outer-radius-value');
-            const innerRadiusSlider = unifiedControls.querySelector('#modal-inner-radius-slider');
-            const innerRadiusValue = unifiedControls.querySelector('#modal-inner-radius-value');
+            const paddingSlider = sidebar.querySelector('#modal-padding-slider');
+            const paddingValue = sidebar.querySelector('#modal-padding-value');
+            const outerRadiusSlider = sidebar.querySelector('#modal-outer-radius-slider');
+            const outerRadiusValue = sidebar.querySelector('#modal-outer-radius-value');
+            const innerRadiusSlider = sidebar.querySelector('#modal-inner-radius-slider');
+            const innerRadiusValue = sidebar.querySelector('#modal-inner-radius-value');
             
             paddingSlider.value = settings.padding;
-            paddingValue.textContent = settings.padding + 'px';
-            outerRadiusSlider.value = settings.outerRadius || 16;
-            outerRadiusValue.textContent = (settings.outerRadius || 16) + 'px';
-            innerRadiusSlider.value = settings.innerRadius || 12;
-            innerRadiusValue.textContent = (settings.innerRadius || 12) + 'px';
+            paddingValue.textContent = `${settings.padding}px`;
+            outerRadiusSlider.value = settings.outerRadius;
+            outerRadiusValue.textContent = `${settings.outerRadius}px`;
+            innerRadiusSlider.value = settings.innerRadius;
+            innerRadiusValue.textContent = `${settings.innerRadius}px`;
             
             // Set active swatch
-            this.setActiveSwatch(unifiedControls, settings.color);
+            this.setActiveSwatch(sidebar, settings.color);
             
             // Set up real-time editing with CSS for performance
-            this.setupModalEditing(modal, unifiedControls, colorPicker, settings);
+            this.setupModalEditing(modal, sidebar, colorPicker, settings, croppedImageUrl, width, height);
         });
         
         // Event listeners for main actions
         const closeBtn = modal.querySelector('.gloco-close-btn');
-        const downloadBtn = controlPanel.querySelector('#downloadBtn');
-        const copyBtn = controlPanel.querySelector('#copyBtn');
+        const downloadBtn = sidebar.querySelector('#downloadBtn');
+        const copyBtn = sidebar.querySelector('#copyBtn');
         
-        closeBtn.addEventListener('click', () => this.closeModal(modal, finalImageUrl, croppedImageUrl, controlPanel));
+        closeBtn.addEventListener('click', () => this.closeModal(modal, finalImageUrl, croppedImageUrl, null));
         downloadBtn.addEventListener('click', async () => {
             await this.downloadCurrentImage(modal);
             this.showToast('Screenshot downloaded');
         });
         copyBtn.addEventListener('click', async () => {
             // Change button text and disable temporarily
-            const originalHTML = copyBtn.innerHTML;
-            copyBtn.innerHTML = `
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
-                    <rect x="3" y="3" width="18" height="18" rx="0" ry="0"></rect>
-                    <polyline points="7 13 11 17 17 8" stroke-linejoin="miter"></polyline>
-                </svg>
-                COPIED
-            `;
+            const originalText = copyBtn.textContent;
+            copyBtn.textContent = 'Copied!';
             copyBtn.disabled = true;
-            copyBtn.style.opacity = '0.8';
             
             await this.copyCurrentImageToClipboard(modal);
             this.showToast('Copied to clipboard');
             
             // Revert button after 2 seconds
             setTimeout(() => {
-                copyBtn.innerHTML = originalHTML;
+                copyBtn.textContent = originalText;
                 copyBtn.disabled = false;
-                copyBtn.style.opacity = '1';
             }, 2000);
         });
         
         modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                this.closeModal(modal, finalImageUrl, croppedImageUrl, controlPanel);
+            // Prevent closing when clicking on the editor content
+            if (e.target.closest('.gloco-editor')) {
+                return;
             }
+            this.closeModal(modal, finalImageUrl, croppedImageUrl, null);
         });
         
         const escapeHandler = (e) => {
             if (e.key === 'Escape') {
-                this.closeModal(modal, finalImageUrl, croppedImageUrl, controlPanel);
+                this.closeModal(modal, finalImageUrl, croppedImageUrl, null);
                 document.removeEventListener('keydown', escapeHandler);
             }
         };
         document.addEventListener('keydown', escapeHandler);
     }
     
-    setActiveSwatch(floatingControls, color) {
+    setActiveSwatch(container, color) {
         // Remove active class from all swatches
-        const allSwatches = floatingControls.querySelectorAll('.color-swatch');
+        const allSwatches = container.querySelectorAll('.color-swatch');
         allSwatches.forEach(swatch => swatch.classList.remove('active'));
         
         // Find and mark the matching swatch as active
@@ -406,13 +401,13 @@ class GlocoSelector {
         }
     }
     
-    setupModalEditing(modal, unifiedControls, colorPicker, initialSettings) {
-        const paddingSlider = unifiedControls.querySelector('#modal-padding-slider');
-        const paddingValue = unifiedControls.querySelector('#modal-padding-value');
-        const outerRadiusSlider = unifiedControls.querySelector('#modal-outer-radius-slider');
-        const outerRadiusValue = unifiedControls.querySelector('#modal-outer-radius-value');
-        const innerRadiusSlider = unifiedControls.querySelector('#modal-inner-radius-slider');
-        const innerRadiusValue = unifiedControls.querySelector('#modal-inner-radius-value');
+    setupModalEditing(modal, sidebar, colorPicker, initialSettings, croppedImageUrl, originalWidth, originalHeight) {
+        const paddingSlider = sidebar.querySelector('#modal-padding-slider');
+        const paddingValue = sidebar.querySelector('#modal-padding-value');
+        const outerRadiusSlider = sidebar.querySelector('#modal-outer-radius-slider');
+        const outerRadiusValue = sidebar.querySelector('#modal-outer-radius-value');
+        const innerRadiusSlider = sidebar.querySelector('#modal-inner-radius-slider');
+        const innerRadiusValue = sidebar.querySelector('#modal-inner-radius-value');
         const previewBackground = modal.querySelector('#gloco-preview-background');
         const screenshotImg = modal.querySelector('.gloco-screenshot');
 
@@ -441,12 +436,12 @@ class GlocoSelector {
         applyStyles();
         
         // Color swatch selection
-        const colorSwatches = unifiedControls.querySelectorAll('.color-swatch');
+        const colorSwatches = sidebar.querySelectorAll('.color-swatch');
         colorSwatches.forEach(swatch => {
             swatch.addEventListener('click', () => {
                 const color = swatch.getAttribute('data-color');
                 currentSettings.color = color;
-                this.setActiveSwatch(unifiedControls, color);
+                this.setActiveSwatch(sidebar, color);
                 applyStyles();
                 debouncedSave();
             });
@@ -454,24 +449,27 @@ class GlocoSelector {
         
         // Handle padding slider
         paddingSlider.addEventListener('input', (e) => {
-            currentSettings.padding = parseInt(e.target.value, 10);
-            paddingValue.textContent = `${currentSettings.padding}px`;
+            const value = parseInt(e.target.value, 10);
+            currentSettings.padding = value;
+            paddingValue.textContent = `${value}px`;
             applyStyles();
             debouncedSave();
         });
         
         // Handle outer radius slider
         outerRadiusSlider.addEventListener('input', (e) => {
-            currentSettings.outerRadius = parseInt(e.target.value, 10);
-            outerRadiusValue.textContent = `${currentSettings.outerRadius}px`;
+            const value = parseInt(e.target.value, 10);
+            currentSettings.outerRadius = value;
+            outerRadiusValue.textContent = `${value}px`;
             applyStyles();
             debouncedSave();
         });
         
         // Handle inner radius slider
         innerRadiusSlider.addEventListener('input', (e) => {
-            currentSettings.innerRadius = parseInt(e.target.value, 10);
-            innerRadiusValue.textContent = `${currentSettings.innerRadius}px`;
+            const value = parseInt(e.target.value, 10);
+            currentSettings.innerRadius = value;
+            innerRadiusValue.textContent = `${value}px`;
             applyStyles();
             debouncedSave();
         });
@@ -795,9 +793,9 @@ class GlocoSelector {
                 chrome.storage.local.get('gloco_settings', (data) => {
                     const settings = data.gloco_settings || { 
                         color: '#ff5533', 
-                        padding: 30, 
-                        outerRadius: 16, 
-                        innerRadius: 12 
+                        padding: 50, 
+                        outerRadius: 24,
+                        innerRadius: 16
                     };
                     
                     // Create final canvas with padding and radius - maintain high quality
