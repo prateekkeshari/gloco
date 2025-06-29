@@ -220,6 +220,40 @@ class GlocoSelector {
         // Deconstruct the screenshot data
         const { finalImageUrl, croppedImageUrl } = screenshotResult;
         
+        // Default settings
+        const defaultSettings = {
+            backgroundColor: '#FF5F57',
+            backgroundType: 'solid', // 'solid' or 'gradient'
+            gradient: 'sunset',
+            padding: 65,
+            innerRadius: 15,
+            outerRadius: 15,
+            shadowEnabled: false,
+            shadowColor: '#000000',
+            shadowOffsetX: 0,
+            shadowOffsetY: 8,
+            shadowBlur: 16,
+            shadowOpacity: 0.2,
+            browserFrame: false,
+            exportResolution: '2x',
+            filename: 'screenshot'
+        };
+
+        // Color palette
+        const colors = ['#FF5F57', '#FEBC2E', '#282F37', '#58ACF9', '#50C878', '#FFC1CC', '#000000', '#ffffff'];
+        
+        // Gradient presets
+        const gradients = {
+            sunset: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%)',
+            ocean: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            forest: 'linear-gradient(135deg, #134e5e 0%, #71b280 100%)',
+            fire: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+            sky: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+            purple: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            gold: 'linear-gradient(135deg, #f7971e 0%, #ffd200 100%)',
+            mint: 'linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%)'
+        };
+        
         const modal = document.createElement('div');
         modal.className = 'gloco-modal';
         
@@ -232,61 +266,172 @@ class GlocoSelector {
                 </div>
                 <div class="gloco-sidebar">
                     <div class="gloco-sidebar-content">
+                        <!-- Background Section -->
                         <div class="control-section">
                             <div class="control-header">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z"/>
+                                </svg>
                                 <span>Background</span>
                             </div>
+                            <div class="toggle-section">
+                                <div class="toggle-control">
+                                    <span class="toggle-label">Solid Colors</span>
+                                    <div class="toggle-switch active" data-toggle="background-type"></div>
+                                </div>
+                            </div>
                             <div class="color-swatches">
-                                <div class="color-swatch" data-color="#FF5F57" style="background: #FF5F57"></div>
-                                <div class="color-swatch" data-color="#FEBC2E" style="background: #FEBC2E"></div>
-                                <div class="color-swatch" data-color="#282F37" style="background: #282F37"></div>
-                                <div class="color-swatch" data-color="#58ACF9" style="background: #58ACF9"></div>
-                                <div class="color-swatch active" data-color="#50C878" style="background: #50C878"></div>
-                                <div class="color-swatch" data-color="#FFC1CC" style="background: #FFC1CC"></div>
-                                <div class="color-swatch" data-color="#000000" style="background: #000000"></div>
-                                <div class="color-swatch" data-color="#ffffff" style="background: #ffffff"></div>
+                                ${colors.map(color => `
+                                    <button class="color-swatch ${color === defaultSettings.backgroundColor ? 'active' : ''}" 
+                                            style="background-color: ${color};" 
+                                            data-color="${color}"></button>
+                                `).join('')}
+                            </div>
+                            <div class="gradient-swatches" style="display: none;">
+                                ${Object.entries(gradients).map(([name, gradient]) => `
+                                    <button class="gradient-swatch ${name === defaultSettings.gradient ? 'active' : ''}" 
+                                            style="background: ${gradient};" 
+                                            data-gradient="${name}"></button>
+                                `).join('')}
                             </div>
                         </div>
 
-                        <div class="control-divider"></div>
+                        <hr class="control-divider" />
 
+                        <!-- Shadow Section -->
                         <div class="control-section">
                             <div class="control-header">
-                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                                </svg>
+                                <span>Shadow</span>
+                            </div>
+                            <div class="toggle-section">
+                                <div class="toggle-control">
+                                    <span class="toggle-label">Enable Shadow</span>
+                                    <div class="toggle-switch" data-toggle="shadow-enabled"></div>
+                                </div>
+                            </div>
+                            <div class="slider-group shadow-controls" style="opacity: 0.5; pointer-events: none;">
+                                <div class="color-picker-control">
+                                    <span class="slider-label">Shadow Color</span>
+                                    <input type="color" class="color-picker-input" value="${defaultSettings.shadowColor}" data-setting="shadowColor" />
+                                </div>
+                                <div class="slider-control">
+                                    <div class="slider-label-container">
+                                        <span class="slider-label">Offset X</span>
+                                        <span class="slider-value">${defaultSettings.shadowOffsetX}px</span>
+                                    </div>
+                                    <input type="range" min="-50" max="50" value="${defaultSettings.shadowOffsetX}" data-setting="shadowOffsetX" />
+                                </div>
+                                <div class="slider-control">
+                                    <div class="slider-label-container">
+                                        <span class="slider-label">Offset Y</span>
+                                        <span class="slider-value">${defaultSettings.shadowOffsetY}px</span>
+                                    </div>
+                                    <input type="range" min="-50" max="50" value="${defaultSettings.shadowOffsetY}" data-setting="shadowOffsetY" />
+                                </div>
+                                <div class="slider-control">
+                                    <div class="slider-label-container">
+                                        <span class="slider-label">Blur</span>
+                                        <span class="slider-value">${defaultSettings.shadowBlur}px</span>
+                                    </div>
+                                    <input type="range" min="0" max="50" value="${defaultSettings.shadowBlur}" data-setting="shadowBlur" />
+                                </div>
+                                <div class="slider-control">
+                                    <div class="slider-label-container">
+                                        <span class="slider-label">Opacity</span>
+                                        <span class="slider-value">${Math.round(defaultSettings.shadowOpacity * 100)}%</span>
+                                    </div>
+                                    <input type="range" min="0" max="1" step="0.01" value="${defaultSettings.shadowOpacity}" data-setting="shadowOpacity" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="control-divider" />
+
+                        <!-- Padding Section -->
+                        <div class="control-section">
+                            <div class="control-header">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+                                </svg>
                                 <span>Padding</span>
                             </div>
-                            <div class="slider-control">
-                                <div class="slider-label-container">
-                                    <div class="slider-label">Padding</div>
-                                    <span class="slider-value" id="modal-padding-value">65px</span>
+                            <div class="slider-group">
+                                <div class="slider-control">
+                                    <div class="slider-label-container">
+                                        <span class="slider-label">Padding</span>
+                                        <span class="slider-value" id="modal-padding-value">${defaultSettings.padding}px</span>
+                                    </div>
+                                    <input type="range" min="0" max="200" value="${defaultSettings.padding}" id="modal-padding-slider" />
                                 </div>
-                                <input type="range" id="modal-padding-slider" min="0" max="150" step="1" value="65">
                             </div>
                         </div>
-                        
-                        <div class="control-divider"></div>
 
+                        <hr class="control-divider" />
+
+                        <!-- Corner Radius Section -->
                         <div class="control-section">
                             <div class="control-header">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4" ry="4"></rect></svg>
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                </svg>
                                 <span>Corner Radius</span>
                             </div>
                             <div class="slider-group">
                                 <div class="slider-control">
                                     <div class="slider-label-container">
-                                        <div class="slider-label">Outer</div>
-                                        <span class="slider-value" id="modal-outer-radius-value">15px</span>
+                                        <span class="slider-label">Inner Radius</span>
+                                        <span class="slider-value" id="modal-inner-radius-value">${defaultSettings.innerRadius}px</span>
                                     </div>
-                                    <input type="range" id="modal-outer-radius-slider" min="0" max="100" step="1" value="15">
+                                    <input type="range" min="0" max="50" value="${defaultSettings.innerRadius}" id="modal-inner-radius-slider" />
                                 </div>
                                 <div class="slider-control">
                                     <div class="slider-label-container">
-                                        <div class="slider-label">Inner</div>
-                                        <span class="slider-value" id="modal-inner-radius-value">15px</span>
+                                        <span class="slider-label">Outer Radius</span>
+                                        <span class="slider-value" id="modal-outer-radius-value">${defaultSettings.outerRadius}px</span>
                                     </div>
-                                    <input type="range" id="modal-inner-radius-slider" min="0" max="100" step="1" value="15">
+                                    <input type="range" min="0" max="50" value="${defaultSettings.outerRadius}" id="modal-outer-radius-slider" />
                                 </div>
+                            </div>
+                        </div>
+
+                        <hr class="control-divider" />
+
+                        <!-- Frame Section -->
+                        <div class="control-section">
+                            <div class="control-header">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                </svg>
+                                <span>Browser Frame</span>
+                            </div>
+                            <div class="toggle-section">
+                                <div class="toggle-control">
+                                    <span class="toggle-label">Add Browser Frame</span>
+                                    <div class="toggle-switch" data-toggle="browser-frame"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="control-divider" />
+
+                        <!-- Export Section -->
+                        <div class="control-section">
+                            <div class="control-header">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                <span>Export</span>
+                            </div>
+                            <div class="export-options">
+                                <div class="resolution-buttons">
+                                    <button class="resolution-btn" data-resolution="1x">1x</button>
+                                    <button class="resolution-btn active" data-resolution="2x">2x</button>
+                                    <button class="resolution-btn" data-resolution="3x">3x</button>
+                                </div>
+                                <input type="text" class="filename-input" placeholder="Filename" value="${defaultSettings.filename}" data-setting="filename" />
                             </div>
                         </div>
                     </div>
@@ -302,46 +447,8 @@ class GlocoSelector {
         
         document.body.appendChild(modal);
 
-        // We don't need to size the modal anymore, CSS will handle it.
-        // this.resizeModalToFitScreenshot(modal, finalImageUrl, width, height);
-
-        // The old control panel is gone.
-        const sidebar = modal.querySelector('.gloco-sidebar');
-        chrome.storage.local.get('gloco_settings', (data) => {
-            const settings = data.gloco_settings || { 
-                color: '#50C878', 
-                padding: 65, 
-                outerRadius: 15,
-                innerRadius: 15
-            };
-            
-            // The color picker is now part of the sidebar
-            const colorPicker = document.createElement('input');
-            colorPicker.type = 'hidden';
-            colorPicker.id = 'modal-color-picker';
-            colorPicker.value = settings.color;
-            sidebar.appendChild(colorPicker);
-            
-            const paddingSlider = sidebar.querySelector('#modal-padding-slider');
-            const paddingValue = sidebar.querySelector('#modal-padding-value');
-            const outerRadiusSlider = sidebar.querySelector('#modal-outer-radius-slider');
-            const outerRadiusValue = sidebar.querySelector('#modal-outer-radius-value');
-            const innerRadiusSlider = sidebar.querySelector('#modal-inner-radius-slider');
-            const innerRadiusValue = sidebar.querySelector('#modal-inner-radius-value');
-            
-            paddingSlider.value = settings.padding;
-            paddingValue.textContent = `${settings.padding}px`;
-            outerRadiusSlider.value = settings.outerRadius;
-            outerRadiusValue.textContent = `${settings.outerRadius}px`;
-            innerRadiusSlider.value = settings.innerRadius;
-            innerRadiusValue.textContent = `${settings.innerRadius}px`;
-            
-            // Set active swatch
-            this.setActiveSwatch(sidebar, settings.color);
-            
-            // Set up real-time editing with CSS for performance
-            this.setupModalEditing(modal, sidebar, colorPicker, settings, croppedImageUrl, width, height);
-        });
+        // Set up enhanced modal interactions
+        this.setupEnhancedModalEditing(modal, defaultSettings, croppedImageUrl, width, height, gradients);
         
         // Event listeners for main actions
         const closeBtn = modal.querySelector('.gloco-close-btn');
@@ -474,6 +581,357 @@ class GlocoSelector {
             debouncedSave();
         });
     }
+
+    setupEnhancedModalEditing(modal, settings, croppedImageUrl, width, height, gradients) {
+        const previewBackground = modal.querySelector('#gloco-preview-background');
+        const screenshot = modal.querySelector('.gloco-screenshot');
+        
+        let currentSettings = { ...settings };
+
+        // Helper function to convert hex to rgba
+        const hexToRgba = (hex, alpha) => {
+            const r = parseInt(hex.slice(1, 3), 16);
+            const g = parseInt(hex.slice(3, 5), 16);
+            const b = parseInt(hex.slice(5, 7), 16);
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        };
+
+        // Function to update preview
+        const updatePreview = () => {
+            // Update background
+            if (currentSettings.backgroundType === 'solid') {
+                previewBackground.style.background = currentSettings.backgroundColor;
+            } else {
+                previewBackground.style.background = gradients[currentSettings.gradient];
+            }
+            
+            // Update padding
+            previewBackground.style.padding = currentSettings.padding + 'px';
+            
+            // Update border radius
+            previewBackground.style.borderRadius = currentSettings.outerRadius + 'px';
+            screenshot.style.borderRadius = currentSettings.innerRadius + 'px';
+            
+            // Update shadow
+            if (currentSettings.shadowEnabled) {
+                const shadowColor = hexToRgba(currentSettings.shadowColor, currentSettings.shadowOpacity);
+                screenshot.style.boxShadow = `${currentSettings.shadowOffsetX}px ${currentSettings.shadowOffsetY}px ${currentSettings.shadowBlur}px ${shadowColor}`;
+            } else {
+                screenshot.style.boxShadow = 'none';
+            }
+            
+            // Update browser frame
+            if (currentSettings.browserFrame) {
+                if (!screenshot.parentElement.classList.contains('browser-frame')) {
+                    const frame = document.createElement('div');
+                    frame.className = 'browser-frame';
+                    frame.innerHTML = `
+                        <div class="browser-header">
+                            <div class="browser-controls">
+                                <div class="browser-dot red"></div>
+                                <div class="browser-dot yellow"></div>
+                                <div class="browser-dot green"></div>
+                            </div>
+                            <div class="browser-url">example.com</div>
+                            <div style="width: 60px;"></div>
+                        </div>
+                    `;
+                    
+                    screenshot.parentElement.insertBefore(frame, screenshot);
+                    frame.appendChild(screenshot);
+                }
+            } else {
+                const frame = screenshot.closest('.browser-frame');
+                if (frame) {
+                    previewBackground.appendChild(screenshot);
+                    frame.remove();
+                }
+            }
+        };
+
+        // Color swatches
+        modal.querySelectorAll('.color-swatch').forEach(swatch => {
+            swatch.addEventListener('click', (e) => {
+                modal.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+                e.target.classList.add('active');
+                currentSettings.backgroundColor = e.target.dataset.color;
+                updatePreview();
+            });
+        });
+
+        // Gradient swatches
+        modal.querySelectorAll('.gradient-swatch').forEach(swatch => {
+            swatch.addEventListener('click', (e) => {
+                modal.querySelectorAll('.gradient-swatch').forEach(s => s.classList.remove('active'));
+                e.target.classList.add('active');
+                currentSettings.gradient = e.target.dataset.gradient;
+                updatePreview();
+            });
+        });
+
+        // Toggle switches
+        modal.querySelectorAll('.toggle-switch').forEach(toggle => {
+            toggle.addEventListener('click', (e) => {
+                const toggleType = e.target.dataset.toggle;
+                e.target.classList.toggle('active');
+                
+                if (toggleType === 'background-type') {
+                    currentSettings.backgroundType = e.target.classList.contains('active') ? 'solid' : 'gradient';
+                    // Toggle visibility of color/gradient swatches
+                    const colorSwatches = modal.querySelector('.color-swatches');
+                    const gradientSwatches = modal.querySelector('.gradient-swatches');
+                    if (currentSettings.backgroundType === 'solid') {
+                        colorSwatches.style.display = 'grid';
+                        gradientSwatches.style.display = 'none';
+                    } else {
+                        colorSwatches.style.display = 'none';
+                        gradientSwatches.style.display = 'grid';
+                    }
+                } else if (toggleType === 'shadow-enabled') {
+                    currentSettings.shadowEnabled = e.target.classList.contains('active');
+                    // Toggle shadow controls
+                    const shadowControls = modal.querySelector('.shadow-controls');
+                    if (currentSettings.shadowEnabled) {
+                        shadowControls.style.opacity = '1';
+                        shadowControls.style.pointerEvents = 'all';
+                    } else {
+                        shadowControls.style.opacity = '0.5';
+                        shadowControls.style.pointerEvents = 'none';
+                    }
+                } else if (toggleType === 'browser-frame') {
+                    currentSettings.browserFrame = e.target.classList.contains('active');
+                }
+                
+                updatePreview();
+            });
+        });
+
+        // Range sliders
+        modal.querySelectorAll('input[type="range"]').forEach(slider => {
+            slider.addEventListener('input', (e) => {
+                const setting = e.target.dataset.setting;
+                let value = parseFloat(e.target.value);
+                
+                if (setting) {
+                    if (setting === 'shadowOpacity') {
+                        currentSettings[setting] = value;
+                        e.target.parentElement.querySelector('.slider-value').textContent = Math.round(value * 100) + '%';
+                    } else {
+                        currentSettings[setting] = value;
+                        e.target.parentElement.querySelector('.slider-value').textContent = value + 'px';
+                    }
+                } else {
+                    // Handle legacy sliders
+                    if (e.target.id === 'modal-padding-slider') {
+                        currentSettings.padding = value;
+                        modal.querySelector('#modal-padding-value').textContent = value + 'px';
+                    } else if (e.target.id === 'modal-inner-radius-slider') {
+                        currentSettings.innerRadius = value;
+                        modal.querySelector('#modal-inner-radius-value').textContent = value + 'px';
+                    } else if (e.target.id === 'modal-outer-radius-slider') {
+                        currentSettings.outerRadius = value;
+                        modal.querySelector('#modal-outer-radius-value').textContent = value + 'px';
+                    }
+                }
+                
+                updatePreview();
+            });
+        });
+
+        // Color picker
+        modal.querySelectorAll('.color-picker-input').forEach(picker => {
+            picker.addEventListener('input', (e) => {
+                const setting = e.target.dataset.setting;
+                currentSettings[setting] = e.target.value;
+                updatePreview();
+            });
+        });
+
+        // Resolution buttons
+        modal.querySelectorAll('.resolution-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                modal.querySelectorAll('.resolution-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                currentSettings.exportResolution = e.target.dataset.resolution;
+            });
+        });
+
+        // Filename input
+        const filenameInput = modal.querySelector('.filename-input');
+        if (filenameInput) {
+            filenameInput.addEventListener('input', (e) => {
+                currentSettings.filename = e.target.value;
+            });
+        }
+
+        // Store current settings for access by other functions
+        modal._currentSettings = currentSettings;
+
+        // Initial preview update
+        updatePreview();
+    }
+
+    async generateEnhancedScreenshot(settings, highQuality = false) {
+        return new Promise((resolve) => {
+            if (!this.lastCapturedData) {
+                resolve(null);
+                return;
+            }
+
+            const { imageUrl, croppedWidth, croppedHeight } = this.lastCapturedData;
+            const img = new Image();
+            
+            img.onload = () => {
+                const scale = parseInt(settings.exportResolution.replace('x', ''));
+                const pixelRatio = highQuality ? Math.max(scale, 2) : scale;
+                
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Enable high-quality rendering
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                
+                const padding = settings.padding * pixelRatio;
+                const outerRadius = settings.outerRadius * pixelRatio;
+                const innerRadius = settings.innerRadius * pixelRatio;
+                
+                canvas.width = (croppedWidth + settings.padding * 2) * pixelRatio;
+                canvas.height = (croppedHeight + settings.padding * 2) * pixelRatio;
+                
+                // Draw background with outer radius
+                ctx.save();
+                this.roundRect(ctx, 0, 0, canvas.width, canvas.height, outerRadius);
+                ctx.clip();
+                
+                // Apply background (solid or gradient)
+                if (settings.backgroundType === 'solid') {
+                    ctx.fillStyle = settings.backgroundColor;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                } else {
+                    // Create gradient (simplified for canvas)
+                    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                    // Add gradient stops based on selected gradient
+                    if (settings.gradient === 'sunset') {
+                        gradient.addColorStop(0, '#ff9a9e');
+                        gradient.addColorStop(0.5, '#fecfef');
+                        gradient.addColorStop(1, '#fecfef');
+                    } else if (settings.gradient === 'ocean') {
+                        gradient.addColorStop(0, '#667eea');
+                        gradient.addColorStop(1, '#764ba2');
+                    } else if (settings.gradient === 'forest') {
+                        gradient.addColorStop(0, '#134e5e');
+                        gradient.addColorStop(1, '#71b280');
+                    } else if (settings.gradient === 'fire') {
+                        gradient.addColorStop(0, '#fa709a');
+                        gradient.addColorStop(1, '#fee140');
+                    } else if (settings.gradient === 'sky') {
+                        gradient.addColorStop(0, '#a8edea');
+                        gradient.addColorStop(1, '#fed6e3');
+                    } else if (settings.gradient === 'purple') {
+                        gradient.addColorStop(0, '#667eea');
+                        gradient.addColorStop(1, '#764ba2');
+                    } else if (settings.gradient === 'gold') {
+                        gradient.addColorStop(0, '#f7971e');
+                        gradient.addColorStop(1, '#ffd200');
+                    } else if (settings.gradient === 'mint') {
+                        gradient.addColorStop(0, '#89f7fe');
+                        gradient.addColorStop(1, '#66a6ff');
+                    }
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+                
+                ctx.restore();
+                
+                // Draw shadow if enabled
+                if (settings.shadowEnabled) {
+                    ctx.save();
+                    const shadowColor = this.hexToRgba(settings.shadowColor, settings.shadowOpacity);
+                    ctx.shadowColor = shadowColor;
+                    ctx.shadowOffsetX = settings.shadowOffsetX * pixelRatio;
+                    ctx.shadowOffsetY = settings.shadowOffsetY * pixelRatio;
+                    ctx.shadowBlur = settings.shadowBlur * pixelRatio;
+                    
+                    this.roundRect(ctx, padding, padding, croppedWidth * pixelRatio, croppedHeight * pixelRatio, innerRadius);
+                    ctx.fillStyle = 'rgba(0,0,0,0.01)';
+                    ctx.fill();
+                    ctx.restore();
+                }
+                
+                // Draw screenshot with inner radius
+                ctx.save();
+                this.roundRect(ctx, padding, padding, croppedWidth * pixelRatio, croppedHeight * pixelRatio, innerRadius);
+                ctx.clip();
+                
+                // Handle browser frame
+                if (settings.browserFrame) {
+                    // Draw browser frame background
+                    const frameHeight = 28 * pixelRatio;
+                    const framePadding = 8 * pixelRatio;
+                    
+                    ctx.fillStyle = '#f6f6f6';
+                    ctx.fillRect(padding, padding, croppedWidth * pixelRatio, croppedHeight * pixelRatio + frameHeight + framePadding);
+                    
+                    // Draw header
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(padding, padding, croppedWidth * pixelRatio, frameHeight);
+                    
+                    // Draw traffic lights
+                    const dotSize = 12 * pixelRatio;
+                    const dotY = padding + frameHeight / 2 - dotSize / 2;
+                    const dotSpacing = 8 * pixelRatio;
+                    
+                    ctx.fillStyle = '#ff5f56';
+                    ctx.beginPath();
+                    ctx.arc(padding + 12 * pixelRatio, dotY + dotSize / 2, dotSize / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = '#ffbd2e';
+                    ctx.beginPath();
+                    ctx.arc(padding + 12 * pixelRatio + dotSize + dotSpacing, dotY + dotSize / 2, dotSize / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = '#27ca3f';
+                    ctx.beginPath();
+                    ctx.arc(padding + 12 * pixelRatio + (dotSize + dotSpacing) * 2, dotY + dotSize / 2, dotSize / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Draw the screenshot below the header
+                    ctx.drawImage(img, padding, padding + frameHeight, croppedWidth * pixelRatio, croppedHeight * pixelRatio);
+                } else {
+                    ctx.drawImage(img, padding, padding, croppedWidth * pixelRatio, croppedHeight * pixelRatio);
+                }
+                
+                ctx.restore();
+                
+                resolve(canvas.toDataURL('image/png'));
+            };
+            
+            img.src = imageUrl;
+        });
+    }
+
+    hexToRgba(hex, alpha) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    roundRect(ctx, x, y, width, height, radius) {
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + width - radius, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+        ctx.lineTo(x + width, y + height - radius);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+        ctx.lineTo(x + radius, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+        ctx.lineTo(x, y + radius);
+        ctx.quadraticCurveTo(x, y, x + radius, y);
+        ctx.closePath();
+    }
     
     async regenerateScreenshot(color, padding, outerRadius, innerRadius, highQuality = false) {
         try {
@@ -569,36 +1027,67 @@ class GlocoSelector {
     }
     
     async downloadCurrentImage(modal) {
-        const settings = await chrome.storage.local.get('gloco_settings').then(res => res.gloco_settings);
-        const finalImageUrl = await this.regenerateScreenshot(
-            settings.color,
-            settings.padding,
-            settings.outerRadius,
-            settings.innerRadius,
-            true // Always use high quality for export
-        );
+        try {
+            const settings = modal._currentSettings || {
+                backgroundColor: '#FF5F57',
+                backgroundType: 'solid',
+                gradient: 'sunset',
+                padding: 65,
+                innerRadius: 15,
+                outerRadius: 15,
+                shadowEnabled: false,
+                shadowColor: '#000000',
+                shadowOffsetX: 0,
+                shadowOffsetY: 8,
+                shadowBlur: 16,
+                shadowOpacity: 0.2,
+                browserFrame: false,
+                exportResolution: '2x',
+                filename: 'screenshot'
+            };
 
-        if (!finalImageUrl) return;
-
-        const link = document.createElement('a');
-        link.href = finalImageUrl;
-        link.download = `gloco-screenshot-${Date.now()}.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(finalImageUrl);
+            // Generate high-quality version for download
+            const highQualityImageUrl = await this.generateEnhancedScreenshot(settings, true);
+            
+            if (highQualityImageUrl) {
+                // Create download link
+                const link = document.createElement('a');
+                link.href = highQualityImageUrl;
+                link.download = `${settings.filename || 'screenshot'}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Clean up the blob URL
+                setTimeout(() => URL.revokeObjectURL(highQualityImageUrl), 1000);
+            }
+        } catch (error) {
+            console.error('Download failed:', error);
+            this.showToast('Download failed. Please try again.');
+        }
     }
     
     async copyCurrentImageToClipboard(modal) {
         try {
-            const settings = await chrome.storage.local.get('gloco_settings').then(res => res.gloco_settings);
-            const finalImageUrl = await this.regenerateScreenshot(
-                settings.color,
-                settings.padding,
-                settings.outerRadius,
-                settings.innerRadius,
-                true // Always use high quality for export
-            );
+            const settings = modal._currentSettings || {
+                backgroundColor: '#FF5F57',
+                backgroundType: 'solid',
+                gradient: 'sunset',
+                padding: 65,
+                innerRadius: 15,
+                outerRadius: 15,
+                shadowEnabled: false,
+                shadowColor: '#000000',
+                shadowOffsetX: 0,
+                shadowOffsetY: 8,
+                shadowBlur: 16,
+                shadowOpacity: 0.2,
+                browserFrame: false,
+                exportResolution: '2x',
+                filename: 'screenshot'
+            };
+
+            const finalImageUrl = await this.generateEnhancedScreenshot(settings, true);
 
             if (!finalImageUrl) throw new Error("Could not generate image for copying");
 
