@@ -228,9 +228,9 @@ class GlocoSelector {
         
         modal.innerHTML = `
             <div class="gloco-modal-content">
-                <button class="gloco-close-btn">×</button>
                 <div class="gloco-screenshot-container">
                     <img src="${imageUrl}" alt="Screenshot" class="gloco-screenshot" />
+                    <button class="gloco-close-btn">×</button>
                 </div>
             </div>
         `;
